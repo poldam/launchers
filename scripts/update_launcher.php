@@ -1,15 +1,15 @@
 <?php
 
-require_once("lib.php");
+require_once("../libraries/lib.php");
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    $id = $_POST['launcherId']; // The ID is passed when editing an existing launcher
     $name = $_POST['name'];
     $lat = $_POST['lat'];
     $lng = $_POST['lng'];
-
     $description = '';
 
     if(!empty($_POST['template'])) {
@@ -64,9 +64,11 @@ try {
         $range = (pow($speed, 2) * $sin2theta) / ($g * $dragFactor);
     }
 
-    // Insert a new launcher into the database
-    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description) 
-                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description )');
+    // Update the launcher record in the database
+    $stmt = $pdo->prepare('UPDATE launchers 
+                           SET name = :name, model = :model, rocket_name = :rocket_name, mass = :mass, area = :area, 
+                               speed = :speed, lat = :lat, lng = :lng, `range` = :range, explosive_yield = :explosive_yield, overpressure = :overpressure, blast_radius = :blast_radius, description = :description 
+                           WHERE id = :id');
     $stmt->execute([
         ':name' => $name,
         ':model' => $model,
@@ -76,15 +78,17 @@ try {
         ':speed' => $speed,
         ':lat' => $lat,
         ':lng' => $lng,
+        ':range' => $range,
         ':explosive_yield' => $explosive_yield,
         ':overpressure' => $overpressure,
         ':blast_radius' => $blast_radius,
-        ':range' => $range,
-        ':description' => $description
+        ':description' => $description,
+        ':id' => $id
     ]);
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'data' => $_POST]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
+
+

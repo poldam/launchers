@@ -1,5 +1,5 @@
 <?php
-require_once('lib.php');
+require_once('../libraries/lib.php');
 
 $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 

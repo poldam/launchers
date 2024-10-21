@@ -1,5 +1,5 @@
 <?php
-require_once('lib.php'); // Replace with your actual database connection logic
+require_once('../libraries/lib.php'); // Replace with your actual database connection logic
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'];

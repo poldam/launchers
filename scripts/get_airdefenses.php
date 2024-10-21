@@ -1,5 +1,5 @@
 <?php
-require_once('lib.php'); // Replace with your actual database connection logic
+require_once('../libraries/lib.php'); // Replace with your actual database connection logic
 
 header('Content-Type: application/json');
 

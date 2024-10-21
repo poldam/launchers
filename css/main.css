@@ -1,0 +1,42 @@
+* {
+    font-family: 'PT Sans', sans-serif;
+}
+
+/* Typography */
+body {
+    line-height: 1.6;
+    background-color: #f4f7f6;
+    color: #333;
+}
+
+/* Buttons */
+.btn {
+    transition: all 0.3s ease;
+}
+
+#map {
+    height: 900px;
+    width: 100%;
+    border-radius: 4px;
+}
+
+.leaflet-control-attribution.leaflet-control {
+    display: none;
+}
+
+.leaflet-control-locate {
+    background-color: white;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+.orange {
+    color: orange;
+}
+
+.explosion {
+    font-size: 24px;
+    color: orange;
+}
