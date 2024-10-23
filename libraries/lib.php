@@ -1,4 +1,5 @@
 <?php
+## ONLINE DB 
 $host = '213.158.90.13';
 $db = 'estrosdb1';
 $user = 'estrosdb1user1';
