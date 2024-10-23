@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$db = 'rocket_launcher_db';
-$user = 'root';
-$pass = 'root';
+$host = '213.158.90.13';
+$db = 'estrosdb1';
+$user = 'estrosdb1user1';
+$pass = '0m3K9^9pv*dFres@';
 
 // Function to calculate the blast radius
 function calculateBlastRadius($yield_tnt, $overpressure_psi) {
