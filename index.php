@@ -33,7 +33,7 @@
 
         <!-- Modal for adding/updating a launcher -->
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="launcherModalLabel">Add/Edit a launcher</h5>
@@ -62,56 +62,13 @@
                                 <div class="col-md-12">
                                     <hr>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="name">Launcher name:</label>
                                         <input type="text" class="form-control" id="name" name="name" required>
+                                        <input type="hidden" id="lat" name="lat">
+                                        <input type="hidden" id="lng" name="lng">
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="model">Model:</label>
-                                        <input type="text" class="form-control" id="model" name="model" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="rocketName">Missile name:</label>
-                                        <input type="text" class="form-control" id="rocketName" name="rocketName" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="mass">Missile mass (kg):</label>
-                                        <input type="number" class="form-control" id="mass" name="mass" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="speed">Initial Launch Velocity (m/s):</label>
-                                        <input type="number" class="form-control" id="speed" name="speed" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="explosive_yield">Explosive Yield (tons of TNT):</label>
-                                        <input type="number" step="0.1" class="form-control" id="explosive_yield" name="explosive_yield" required value="0.09">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="overpressure">Overpressure (psi):</label>
-                                        <input type="number" step="0.1" class="form-control" id="overpressure" name="overpressure" required value="3">
-                                    </div>
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="area"> Cross-sectional Area of the Rocket<br>(Εμβαδόν Διατομής Πυραύλου) (m²):</label>
-                                        <input type="number" class="form-control" id="area" name="area" step="0.01" required>
-                                    </div>
-
-                                    <input type="hidden" id="lat" name="lat">
-                                    <input type="hidden" id="lng" name="lng">
                                 </div>
                                 <div class="col-md-12"><div class="alert alert-info" id="launcherdescription"></div></div>
                             </div>

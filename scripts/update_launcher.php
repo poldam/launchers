@@ -34,39 +34,11 @@ try {
 
         $range = $template['range'];
         $description = $template['description'];
-    } else {
-        $model = $_POST['model'];
-        $rocketName = $_POST['rocketName'];
-
-        $mass = floatval($_POST['mass']); // kg
-        $area = floatval($_POST['area']); // m²
-        $speed = floatval($_POST['speed']); // m/s
-
-        $explosive_yield = floatval($_POST['explosive_yield']); // in tons of TNT
-        $overpressure = floatval($_POST['overpressure']); // in psi
-
-        // Calculate blast radius based on yield and overpressure
-        $blast_radius = calculateBlastRadius($explosive_yield, $overpressure);
-        // Constants for the calculation
-        $g = 9.81; // Acceleration due to gravity in m/s²
-        $rho = 1.225; // Air density at sea level in kg/m³
-        $Cd = 0.5; // Drag coefficient (typical for a rocket)
-
-        // Optimal launch angle (46 degrees converted to radians)
-        $angleInRadians = deg2rad(46);
-        $sin2theta = sin(2 * $angleInRadians);
-
-        // Calculate k = 0.5 * Cd * rho * A
-        $k = 0.5 * $Cd * $rho * $area;
-
-        // Calculate the drag-modified range
-        $dragFactor = 1 + ($k * $speed) / ($mass * $g);
-        $range = (pow($speed, 2) * $sin2theta) / ($g * $dragFactor);
-    }
+    } 
 
     // Update the launcher record in the database
     $stmt = $pdo->prepare('UPDATE launchers 
-                           SET name = :name, model = :model, rocket_name = :rocket_name, mass = :mass, area = :area, 
+                           SET name = :name, model = :model, rocket_name = :rocket_name, mass = :mass, area = :area, templateID = :templateID,
                                speed = :speed, lat = :lat, lng = :lng, `range` = :range, explosive_yield = :explosive_yield, overpressure = :overpressure, blast_radius = :blast_radius, description = :description 
                            WHERE id = :id');
     $stmt->execute([
@@ -83,6 +55,7 @@ try {
         ':overpressure' => $overpressure,
         ':blast_radius' => $blast_radius,
         ':description' => $description,
+        ':templateID' => $templateId,
         ':id' => $id
     ]);
 

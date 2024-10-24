@@ -12,18 +12,6 @@ $(document).ready(function() {
                     // Parse the JSON response
                     var template = JSON.parse(response);
 
-                    // Populate form fields with template data
-                    $('#name').val(template.name);
-                    $('#model').val(template.model);
-                    $('#rocketName').val(template.rocket_name);
-                    $('#mass').val(template.mass);
-                    $('#area').val(template.area);
-                    $('#speed').val(template.speed);
-                    $('#range').val(template.range);
-                    $('#explosive_yield').val(template.explosive_yield);
-                    $('#overpressure').val(template.overpressure);
-                    $('#blast_radius').val(template.blast_radius);
-
                     $('#launcherdescription').text(template.description);
                 }
             });
@@ -184,6 +172,7 @@ function addLauncherToMap(launcher) {
     // Store launcher and circle data in the array
     launchers.push({
         id: launcher.id,
+        templateID: launcher.templateID,
         name: launcher.name,
         model: launcher.model,
         rocketName: launcher.rocket_name,
@@ -619,13 +608,11 @@ function updateLauncherPosition(id, newLat, newLng) {
 
 // Function to fill the form for editing a launcher
 function fillLauncherForm(launcher) {
+    // console.log(launcher)
     $('#launcherId').val(launcher.id);
+    $('#template').val(launcher.templateID);
     $('#name').val(launcher.name);
-    $('#model').val(launcher.model);
-    $('#rocketName').val(launcher.rocket_name);
-    $('#mass').val(launcher.mass);
-    $('#area').val(launcher.area);
-    $('#speed').val(launcher.speed);
+    
     $('#lat').val(launcher.lat);
     $('#lng').val(launcher.lng);
 
@@ -634,9 +621,6 @@ function fillLauncherForm(launcher) {
         description = launcher.description;
 
     $('#launcherdescription').text(description);
-
-    $('#explosive_yield').val(launcher.explosive_yield);
-    $('#overpressure').val(launcher.overpressure);
 }
 
 // Confirm deletion of launcher

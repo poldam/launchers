@@ -34,39 +34,11 @@ try {
 
         $range = $template['range'];
         $description = $template['description'];
-    } else {
-        $model = $_POST['model'];
-        $rocketName = $_POST['rocketName'];
-
-        $mass = floatval($_POST['mass']); // kg
-        $area = floatval($_POST['area']); // m²
-        $speed = floatval($_POST['speed']); // m/s
-
-        $explosive_yield = floatval($_POST['explosive_yield']); // in tons of TNT
-        $overpressure = floatval($_POST['overpressure']); // in psi
-
-        // Calculate blast radius based on yield and overpressure
-        $blast_radius = calculateBlastRadius($explosive_yield, $overpressure);
-        // Constants for the calculation
-        $g = 9.81; // Acceleration due to gravity in m/s²
-        $rho = 1.225; // Air density at sea level in kg/m³
-        $Cd = 0.5; // Drag coefficient (typical for a rocket)
-
-        // Optimal launch angle (46 degrees converted to radians)
-        $angleInRadians = deg2rad(46);
-        $sin2theta = sin(2 * $angleInRadians);
-
-        // Calculate k = 0.5 * Cd * rho * A
-        $k = 0.5 * $Cd * $rho * $area;
-
-        // Calculate the drag-modified range
-        $dragFactor = 1 + ($k * $speed) / ($mass * $g);
-        $range = (pow($speed, 2) * $sin2theta) / ($g * $dragFactor);
-    }
+    } 
 
     // Insert a new launcher into the database
-    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description) 
-                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description )');
+    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description, templateID) 
+                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description, :templateID )');
     $stmt->execute([
         ':name' => $name,
         ':model' => $model,
@@ -80,7 +52,8 @@ try {
         ':overpressure' => $overpressure,
         ':blast_radius' => $blast_radius,
         ':range' => $range,
-        ':description' => $description
+        ':description' => $description,
+        ':templateID' => $templateId
     ]);
 
     echo json_encode(['success' => true]);
