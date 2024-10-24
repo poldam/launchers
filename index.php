@@ -406,7 +406,7 @@
                         <h4>Application Instructions</h4>
                         <p><strong>1. Adding a Launcher:</strong><br>
                         - Left-click anywhere on the map to add a new launcher.<br>
-                        - Select a launcher template from the dropdown to pre-populate the data or manually input launcher details.
+                        - Select a launcher template from the dropdown, you can modify the name.
                         </p>
 
                         <p><strong>2. Modifying a Launcher:</strong><br>
