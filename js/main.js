@@ -11,7 +11,8 @@ $(document).ready(function() {
                 success: function(response) {
                     // Parse the JSON response
                     var template = JSON.parse(response);
-
+                    console.log(template)
+                    $('#name').val(template.name);
                     $('#launcherdescription').text(template.description);
                 }
             });
@@ -688,6 +689,8 @@ document.getElementById('addLauncherBtn').onclick = function() {
     $('#lat').val(clickedLat);
     $('#lng').val(clickedLng);
     $('#launcherId').val('');
+    $('#template').val('');
+    $('#name').val('');
     // Show the launcher modal
     $('#launcherModal').modal('show');
 
@@ -700,6 +703,8 @@ document.getElementById('addAirDefenseBtn').onclick = function(e) {
     $('#airDefenselat').val(clickedLat);
     $('#airDefenselng').val(clickedLng);
     $('#airDefenseId').val('');
+    $('#airDefenseName').val('');
+    $('#airDefenseTemplate').val('');
     
     $('#airDefenseModal').modal('show'); // Show modal for air defense
     map.closePopup(); // Close the context menu

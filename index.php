@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ballistic Rocket Launchers</title>
+    <title>Missiles/Rockets/Artillery/Drones vs Air Defenses</title>
     <!-- Load Bootstrap CSS -->
     <link href="./css/bootstrap.min.css" rel="stylesheet">
     <!-- Load Leaflet CSS -->
@@ -20,7 +20,7 @@
 </head>
 <body>
     <div class="container-fluid mt-4">
-        <h1>Missile Launchers v0.1</h1>
+        <h1>Missiles v0.1</h1>
 
         <div class="alert alert-danger mb-3"> 
             <strong>DISCLAIMER:</strong> The information provided in this application is for scientific, educational, and experimental purposes only. 
@@ -142,6 +142,9 @@
         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#instructionsModal">
             Instructions
         </button>
+        <hr>
+        <a href ="./launchers/">Missile Templates</a> | 
+        <a href ="./airdefenses/">Airdefense Templates</a> 
 
         <!-- Modal for range formula explanation -->
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">

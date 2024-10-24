@@ -3,7 +3,8 @@ require_once('../libraries/lib.php');
 
 $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 
-$templateId = $_POST['templateId'];
+if(!empty($_POST['templateId'])) 
+    $templateId = $_POST['templateId'];
 
 $stmt = $pdo->prepare('SELECT * FROM airdefense_templates WHERE id = ?');
 $stmt->execute([$templateId]);
