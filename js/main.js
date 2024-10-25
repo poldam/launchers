@@ -197,7 +197,8 @@ function addLauncherToMap(launcher) {
         <b>${launcher.name}</b><br>
         Model: ${launcher.model}<br>
         Rocket: ${launcher.rocket_name}<br>
-        Max Range: ${rangeMeters.toFixed(2)} m (${rangeKilometers} km)<br>
+        Speed: ${launcher.speed} m/s<br>
+        Max Range: ${rangeKilometers} km<br>
         Blast Radius: ${blastRadiusMeters.toFixed(2)} m
     `, {
         permanent: false,
@@ -291,11 +292,13 @@ function addAirDefenseToMap(airDefense) {
     marker.bindTooltip(`
         <b>${airDefense.name}</b><br>
         Model: ${airDefense.model}<br>
-        Detection Range: ${airDefense.detection_range} m (${(airDefense.detection_range / 1000).toFixed(2)} km)<br>
-        Interception Range: ${airDefense.interception_range}0 m (${(airDefense.interception_range / 1000).toFixed(2)} km)<br>
+        Detection Range: ${(airDefense.detection_range / 1000).toFixed(2)} km<br>
+        Interception Range: ${(airDefense.interception_range / 1000).toFixed(2)} km<br>
         Number of Rockets: ${airDefense.num_rockets}/launcher <br>
         Reload time: ${airDefense.reload_time} mins<br>
         Simultanious targets: ${airDefense.max_simultaneous_targets}<br>
+        Interception speed: ${airDefense.interception_speed} m/s<br>
+        Reaction time: ${airDefense.reaction_time} s<br>
         Accuracy: ${parseFloat(airDefense.accuracy)*100}%<br>
         Success Rate: ${rating}
     `, {

@@ -1,4 +1,7 @@
 <?php
+    session_name('MISSILESv0.1');
+    session_start();
+
     require_once('./libraries/lib.php');
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 ?>
@@ -36,7 +39,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="launcherModalLabel">Add/Edit a launcher</h5>
+                        <h5 class="modal-title" id="launcherModalLabel">Add/Edit an Offense Platform</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -46,7 +49,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <input type="hidden" id="launcherId" name="launcherId">
-                                    <label for="template">Select Launcher Template:</label>
+                                    <label for="template">Select Offense Template:</label>
                                     <select id="template" name="template"  class="form-control">
                                         <option value=""> -- Select Template -- </option>
                                         <?php
@@ -64,7 +67,7 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="name">Launcher name:</label>
+                                        <label for="name">Name:</label>
                                         <input type="text" class="form-control" id="name" name="name" required>
                                         <input type="hidden" id="lat" name="lat">
                                         <input type="hidden" id="lng" name="lng">
@@ -76,7 +79,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="saveLauncher">Save Laucnher</button>
+                        <button type="button" class="btn btn-primary" id="saveLauncher">Save</button>
                     </div>
                 </div>
             </div>
@@ -87,13 +90,13 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="deleteModalLabel">Delete Launcher</h5>
+                        <h5 class="modal-title" id="deleteModalLabel">Delete Offense Platform</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        Are you sure you want to delete this launcher;
+                        Are you sure you want to delete this platform;
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -108,13 +111,13 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="deleteModalLabel">Delete Air Defense</h5>
+                        <h5 class="modal-title" id="deleteModalLabel">Delete Defense Platform</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        Are you sure you want to delete this Air Defense?;
+                        Are you sure you want to delete this platform?;
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -142,9 +145,11 @@
         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#instructionsModal">
             Instructions
         </button>
-        <hr>
-        <a href ="./launchers/">Missile Templates</a> | 
-        <a href ="./airdefenses/">Airdefense Templates</a> 
+        <?php if(!empty($_SESSION['loggedin'])) { ?>
+            <hr>
+            <a href ="./launchers/">Offense Templates</a> | 
+            <a href ="./airdefenses/">Defense Templates</a> 
+        <?php } ?>
 
         <!-- Modal for range formula explanation -->
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">
@@ -334,8 +339,8 @@
                     <div class="modal-body">
                         <p>What would you like to add?</p>
                         <div class="d-flex justify-content-around">
-                            <button id="addLauncherBtn" class="btn btn-primary">Add Launcher</button>
-                            <button id="addAirDefenseBtn" class="btn btn-secondary">Add Air Defense</button>
+                            <button id="addLauncherBtn" class="btn btn-primary">Add Offense</button>
+                            <button id="addAirDefenseBtn" class="btn btn-secondary">Add Defense</button>
                         </div>
                     </div>
                 </div>
