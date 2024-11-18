@@ -11,7 +11,7 @@ $(document).ready(function() {
                 success: function(response) {
                     // Parse the JSON response
                     var template = JSON.parse(response);
-                    console.log(template)
+                    // console.log(template)
                     $('#name').val(template.name);
                     $('#launcherdescription').text(template.description);
                 }
@@ -39,13 +39,237 @@ var defenceIcon = L.icon({
     popupAnchor: [0, -40] 
 });
 
-// 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-var maptheme = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
 var map = L.map('map').setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
-L.tileLayer(maptheme, {
-    // attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+
+var osm = L.tileLayer ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: ''
+}).addTo (map);
+
+// Streets
+googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3']
+});
+
+// Hybrid:
+googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3']
+});
+
+// Satellite:
+googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3']
+});
+
+// Terrain
+googleTerrain = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3']
+});
+
+var cartoDBPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '',
+    subdomains: 'abcd',
+    maxZoom: 19
+});
+
+var cartoDBDarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '',
+    subdomains: 'abcd',
+    maxZoom: 19
+});
+
+var powerGridLayer = L.tileLayer('https://tiles.openinframap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: ''
+})
+
+var flosmPowerGridLayer = L.tileLayer('https://{s}.flosm.de/power/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: ''
+})
+
+var osmPowerLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: ''
+})
+
+var baseMaps = {
+    "OSM": osm,
+    "Streets": googleStreets,
+    "Satelite": googleSat,
+    "Hybrid": googleHybrid,
+    "Terain": googleTerrain,
+    "Bright": cartoDBPositron,
+    "Dark Matter": cartoDBDarkMatter
+};
+
+L.control.layers(baseMaps, null, { position: 'topright', collapsed: false }).addTo(map);
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+//// NUCLEAR SITES
+const nuclearFactoriesLayer = L.layerGroup();
+const nuclearIcon = L.divIcon({
+    html: '<i class="nuclear-icon">&#9762;</i>',
+    className: 'nuclear-icon',
+    iconSize: [45, 45], // Size of the icon
+    iconAnchor: [12, 12] // Anchor point of the icon
+});
+// Load the JSON data
+fetch('./assets/nuclear.json')
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(plant => {
+            const { Name, Latitude, Longitude, ReactorModel, OperationalFrom, OperationalTo, Capacity } = plant;
+            
+            if((OperationalTo === null || OperationalTo === "") && Latitude && Longitude) {
+                const marker = L.marker([Latitude, Longitude],{ icon: nuclearIcon });
+
+                marker.bindPopup(`
+                    <b>${Name}</b><br>
+                    Reactor Model: ${ReactorModel || "N/A"}<br>
+                    Operational From: ${OperationalFrom || "N/A"}<br>
+                    Capacity: ${Capacity || "N/A"} MW
+                `);
+
+                nuclearFactoriesLayer.addLayer(marker);
+            }
+        });
+    })
+    .catch(error => console.error('Error loading nuclear JSON data:', error));
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+// Define the war areas array
+var ukraineWar = L.layerGroup() //.addTo(map);
+
+const warareas = [
+    // regions
+    ['donetsk', '#555555'],
+    ['lugansk', '#555555'],
+    ['zaporizhia', '#555555'],
+    ['cherson', '#555555'],
+    ['krim', '#555555'],
+    ['transnistria', '#555555']
+];
+
+// Loop through each area and fetch its GeoJSON file
+warareas.forEach(area => {
+    const city = area[0];
+    const cityColor = area[1];
+
+    // Fetch GeoJSON data for the city
+    fetch(`./assets/warcities/${city}.geo.json`)
+        .then(response => response.json())
+        .then(json => {
+            // Create a Leaflet GeoJSON layer
+            const region = L.geoJson(json, {
+                style: {
+                    fillColor: cityColor,
+                    fillOpacity: 0.1,
+                    weight: 1,
+                    color: '#000' // Optional: Outline color
+                }
+            });
+            // Add the layer to the map
+            region.addTo(ukraineWar);
+        })
+        .catch(error => console.error(`Error fetching GeoJSON for ${city}:`, error));
+});
+
+// Fetch the GeoJSON data for countries
+fetch("./assets/countries.geo.json")
+    .then(response => response.json())
+    .then(json => {
+        // Define the countries to highlight
+        const mycountries = [
+            ['Ukraine', '#FFFF00'], 
+            ['Russia', '#0000FF'],
+            ['Finland', '#555555'],
+            ['Georgia', '#555555'],
+            ['Moldova', '#555555'],
+            ['Estonia', '#555555'],
+            ['Latvia', '#555555'],
+            ['Lithuania', '#555555'],
+            ['Belarus', '#87CEEB']
+        ];
+
+        mycountries.forEach(([countryName, countryColor]) => {
+            json.features.forEach(feature => {
+                if (feature.properties.name === countryName) {
+                    const country = L.geoJson(feature, {
+                        style: {
+                            fillColor: countryColor, 
+                            fillOpacity: 0.1,
+                            weight: 1,
+                            color: '#000' 
+                        }
+                    });
+        
+                    country.addTo(ukraineWar);
+                }
+            });
+        });
+    })
+    .catch(error => console.error("Error fetching or processing GeoJSON data:", error));
+
+////////// BRICS //////////
+var bricsvsg7 = L.layerGroup() //.addTo(map); // Initialize the layer group and add it to the map
+var myjson = null;
+
+// Fetch the GeoJSON data for countries
+fetch("./assets/countries.geo.json")
+    .then(response => response.json())
+    .then(json => {
+        myjson = json; // Store the GeoJSON data
+
+        // Function to add countries to the layer group
+        function addCountriesToLayerGroup(countries, fillcolor) {
+            countries.forEach(countryName => {
+                json.features.forEach(feature => {
+                    if (feature.properties.name === countryName) {
+                        // Create a GeoJSON layer for the matching country
+                        const country = L.geoJson(feature, {
+                            style: {
+                                fillColor: fillcolor,
+                                fillOpacity: 0.2, // Adjust transparency as needed
+                                weight: 1,
+                                color: '#000' // Optional: Outline color
+                            }
+                        });
+
+                        // Add the country layer to the layer group
+                        bricsvsg7.addLayer(country);
+                    }
+                });
+            });
+        }
+
+        // Add BRICS countries
+        addCountriesToLayerGroup(
+            ['China', 'Russia', 'Brazil', 'South Africa', 'India'],
+            '#008f00'
+        );
+
+        // Add BRICS+ countries
+        addCountriesToLayerGroup(
+            ['Iran', 'Ethiopia', 'Argentina', 'Saudi Arabia', 'United Arab Emirates', 'Egypt'],
+            '#adff2f'
+        );
+
+        // Add G7 countries
+        addCountriesToLayerGroup(
+            ['United States of America', 'Canada', 'Germany', 'Japan', 'United Kingdom', 'Italy', 'France'],
+            '#ff0000'
+        );
+    })
+    .catch(error => console.error("Error fetching or processing GeoJSON data:", error));
+
+//////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 
 var selectedLauncherId = null;
 var currentMarker = null;
@@ -598,8 +822,11 @@ function calculateInterceptionTime(airDefense, targetLat, targetLng) {
 L.control.layers(null, {
     'Launchers & Ranges': launcherLayer,
     'Blasts': blastLayer,
-    'Air Defenses': airDefenseLayer
-}).addTo(map);
+    'Air Defenses': airDefenseLayer,
+    'Ukraine War': ukraineWar,
+    'BRICS vs G7': bricsvsg7,
+    'Nuclear Reactors': nuclearFactoriesLayer
+}, { position: 'topright', collapsed: false }).addTo(map);
 
 // Function to update launcher position via AJAX
 function updateLauncherPosition(id, newLat, newLng) {

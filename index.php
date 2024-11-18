@@ -478,6 +478,7 @@
     <script src="./js/bootstrap.bundle.min.js"></script>
     <!-- Load Leaflet JS -->
     <script src="./js/leaflet.js"></script>
+    <script src="./js/Leaflet.CountrySelect.js"></script>
 
     <script src="./js/main.js"></script>
 

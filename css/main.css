@@ -40,3 +40,9 @@ body {
     font-size: 24px;
     color: orange;
 }
+
+.nuclear-icon {
+    font-size: 22px;
+    font-weight: bold;
+    color: red;
+}
