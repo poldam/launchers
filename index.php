@@ -2,6 +2,8 @@
     session_name('MISSILESv0.1');
     session_start();
 
+    $_SESSION['loggedin'] = true;
+
     require_once('./libraries/lib.php');
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 ?>
@@ -12,9 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Missiles/Rockets/Artillery/Drones vs Air Defenses</title>
-    <!-- Load Bootstrap CSS -->
     <link href="./css/bootstrap.min.css" rel="stylesheet">
-    <!-- Load Leaflet CSS -->
     <link rel="stylesheet" href="./css/leaflet.css" />
      
     <link href="https://fonts.googleapis.com/css2?family=PT+Sans&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div class="container-fluid mt-4">
-        <h1>Missiles v0.1</h1>
+        <h1><a href="../"><img src="../logo.png" class="logo" alt="" height="60"></a> Missiles v0.1</h1>
 
         <div class="alert alert-danger mb-3"> 
             <strong>DISCLAIMER:</strong> The information provided in this application is for scientific, educational, and experimental purposes only. 
@@ -34,7 +34,6 @@
 
         <div id="map" class="mb-3"></div>
 
-        <!-- Modal for adding/updating a launcher -->
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -53,7 +52,6 @@
                                     <select id="template" name="template"  class="form-control">
                                         <option value=""> -- Select Template -- </option>
                                         <?php
-                                            // PHP to populate the dropdown with launcher templates from the database
                                             $stmt = $pdo->prepare('SELECT * FROM launcher_templates ORDER BY country DESC, name DESC');
                                             $stmt->execute();
                                             while ($template = $stmt->fetch()) {
@@ -85,7 +83,6 @@
             </div>
         </div>
 
-        <!-- Delete confirmation modal -->
         <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -127,7 +124,6 @@
             </div>
         </div>
 
-        <!-- Button to open the modal -->
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rangeModal">
             Range Calculation
         </button>
@@ -136,12 +132,10 @@
             Blast Radius Calculation
         </button>
 
-        <!-- Button to trigger modal -->
         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#icbmModal">
             Factors Affecting ICBM Range
         </button>
 
-        <!-- Button to open the instructions modal -->
         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#instructionsModal">
             Instructions
         </button>
@@ -151,7 +145,6 @@
             <a href ="./airdefenses/">Defense Templates</a> 
         <?php } ?>
 
-        <!-- Modal for range formula explanation -->
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -224,7 +217,6 @@
             </div>
         </div>
 
-        <!-- Blast Radius Calculation Modal -->
         <div class="modal fade" id="blastRadiusModal" tabindex="-1" role="dialog" aria-labelledby="blastRadiusModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -264,7 +256,6 @@
             </div>
         </div>
 
-        <!-- Modal -->
         <div class="modal fade" id="icbmModal" tabindex="-1" role="dialog" aria-labelledby="icbmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -326,7 +317,6 @@
             </div>
         </div>
 
-        <!-- Modal for selecting between Launcher and Air Defense -->
         <div class="modal fade" id="selectionModal" tabindex="-1" aria-labelledby="selectionModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -347,7 +337,6 @@
             </div>
         </div>
 
-        <!-- Air Defense Modal for adding/editing an air defense -->
         <div class="modal fade" id="airDefenseModal" tabindex="-1" aria-labelledby="airDefenseModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -396,7 +385,6 @@
             </div>
         </div>
 
-        <!-- Large Instructions Modal -->
         <div class="modal fade" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
@@ -472,15 +460,23 @@
 
     </div>
 
-    <!-- Load jQuery -->
     <script src="./js/jquery-3.5.1.min.js"></script>
-    <!-- Load Bootstrap JS -->
     <script src="./js/bootstrap.bundle.min.js"></script>
-    <!-- Load Leaflet JS -->
     <script src="./js/leaflet.js"></script>
     <script src="./js/Leaflet.CountrySelect.js"></script>
 
     <script src="./js/main.js"></script>
+    
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-57355277-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
 
 </body>
 </html>

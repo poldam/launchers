@@ -2,8 +2,8 @@
 session_name('MISSILESv0.1');
 session_start();
 
-// if(!$_SESSION['loggedin'])
-//     header("Location: ../");
+if(!$_SESSION['loggedin'])
+    header("Location: ../");
 
 require_once('../libraries/lib.php');
 $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);

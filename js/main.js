@@ -119,6 +119,7 @@ const nuclearIcon = L.divIcon({
     iconAnchor: [12, 12] // Anchor point of the icon
 });
 // Load the JSON data
+// https://github.com/cristianst85/GeoNuclearData/blob/master/data/json/raw/4-nuclear_power_plants.json
 fetch('./assets/nuclear.json')
     .then(response => response.json())
     .then(data => {
@@ -180,44 +181,17 @@ warareas.forEach(area => {
         .catch(error => console.error(`Error fetching GeoJSON for ${city}:`, error));
 });
 
-// Fetch the GeoJSON data for countries
-fetch("./assets/countries.geo.json")
-    .then(response => response.json())
-    .then(json => {
-        // Define the countries to highlight
-        const mycountries = [
-            ['Ukraine', '#FFFF00'], 
-            ['Russia', '#0000FF'],
-            ['Finland', '#555555'],
-            ['Georgia', '#555555'],
-            ['Moldova', '#555555'],
-            ['Estonia', '#555555'],
-            ['Latvia', '#555555'],
-            ['Lithuania', '#555555'],
-            ['Belarus', '#87CEEB']
-        ];
-
-        mycountries.forEach(([countryName, countryColor]) => {
-            json.features.forEach(feature => {
-                if (feature.properties.name === countryName) {
-                    const country = L.geoJson(feature, {
-                        style: {
-                            fillColor: countryColor, 
-                            fillOpacity: 0.1,
-                            weight: 1,
-                            color: '#000' 
-                        }
-                    });
-        
-                    country.addTo(ukraineWar);
-                }
-            });
-        });
-    })
-    .catch(error => console.error("Error fetching or processing GeoJSON data:", error));
-
 ////////// BRICS //////////
-var bricsvsg7 = L.layerGroup() //.addTo(map); // Initialize the layer group and add it to the map
+var brics = L.layerGroup() //.addTo(map); // Initialize the layer group and add it to the map
+var g7 = L.layerGroup()
+var g20 = L.layerGroup()
+var nato = L.layerGroup()
+var shangai = L.layerGroup()
+var ww2axis = L.layerGroup()
+var ww2allies = L.layerGroup()
+var fiveeyes = L.layerGroup()
+var eu = L.layerGroup()
+var eok = L.layerGroup()
 var myjson = null;
 
 // Fetch the GeoJSON data for countries
@@ -227,7 +201,7 @@ fetch("./assets/countries.geo.json")
         myjson = json; // Store the GeoJSON data
 
         // Function to add countries to the layer group
-        function addCountriesToLayerGroup(countries, fillcolor) {
+        function addCountriesToLayerGroup(countries, fillcolor, actualLayer) {
             countries.forEach(countryName => {
                 json.features.forEach(feature => {
                     if (feature.properties.name === countryName) {
@@ -242,7 +216,7 @@ fetch("./assets/countries.geo.json")
                         });
 
                         // Add the country layer to the layer group
-                        bricsvsg7.addLayer(country);
+                        actualLayer.addLayer(country);
                     }
                 });
             });
@@ -251,20 +225,244 @@ fetch("./assets/countries.geo.json")
         // Add BRICS countries
         addCountriesToLayerGroup(
             ['China', 'Russia', 'Brazil', 'South Africa', 'India'],
-            '#008f00'
+            '#008f00', brics
         );
 
         // Add BRICS+ countries
         addCountriesToLayerGroup(
-            ['Iran', 'Ethiopia', 'Argentina', 'Saudi Arabia', 'United Arab Emirates', 'Egypt'],
-            '#adff2f'
+            ['Iran', 'Ethiopia', 'Saudi Arabia', 'United Arab Emirates', 'Egypt'],
+            '#adff2f', brics
         );
 
         // Add G7 countries
         addCountriesToLayerGroup(
             ['United States of America', 'Canada', 'Germany', 'Japan', 'United Kingdom', 'Italy', 'France'],
-            '#ff0000'
+            '#ff0000', g7
         );
+
+        // UkraineWar
+        addCountriesToLayerGroup(
+            ['Russia'],
+            '#0000FF', ukraineWar
+        );
+
+        addCountriesToLayerGroup(
+            ['Ukraine'],
+            '#FFFF00', ukraineWar
+        );
+
+        addCountriesToLayerGroup(
+            ['Finland','Georgia','Moldova','Estonia','Latvia','Lithuania'],
+            '#555555', ukraineWar
+        );
+
+        addCountriesToLayerGroup(
+            ['Belarus'],
+            '#87CEEB', ukraineWar
+        );
+
+        addCountriesToLayerGroup(
+            ['Australia','Canada','Saudi Arabia','United States of America','India','Russia','South Africa','Turkey','Argentina','Brazil','Mexico','France','Germany','Italy','United Kingdom','China','Indonesia','Japan','South Korea'],
+            '#FFD700', g20
+        );
+
+        const natoCountries = [
+            "Albania",
+            "Belgium",
+            "Bulgaria",
+            "Canada",
+            "Croatia",
+            "Czech Republic",
+            "Denmark",
+            "Estonia",
+            "Finland",
+            "France",
+            "Germany",
+            "Greece",
+            "Hungary",
+            "Iceland",
+            "Italy",
+            "Latvia",
+            "Lithuania",
+            "Luxembourg",
+            "Montenegro",
+            "Netherlands",
+            "Macedonia",
+            "Norway",
+            "Poland",
+            "Portugal",
+            "Romania",
+            "Slovakia",
+            "Slovenia",
+            "Spain",
+            "Sweden",
+            "Turkey",
+            "United Kingdom",
+            "United States of America"
+        ];
+
+        addCountriesToLayerGroup(
+            natoCountries,
+            '#004990', nato
+        );
+
+        const scoMemberStates = [
+            "Belarus",
+            "China",
+            "India",
+            "Iran",
+            "Kazakhstan",
+            "Kyrgyzstan",
+            "Pakistan",
+            "Russia",
+            "Tajikistan",
+            "Uzbekistan"
+        ];
+
+        addCountriesToLayerGroup(
+            scoMemberStates,
+            '#C1E4D0', shangai
+        );
+
+        const axisPowers = [
+            "Germany",
+            "Italy",
+            "Japan",
+            "Hungary",
+            "Romania",
+            "Bulgaria",
+            "Slovakia",
+            "Croatia",
+            "Finland"
+        ];
+          
+        addCountriesToLayerGroup(
+            axisPowers,
+            '#ff0000', ww2axis
+        );
+
+        const fiveEyesCountries = [
+            "Australia",
+            "Canada",
+            "New Zealand",
+            "United Kingdom",
+            "United States of America"
+        ];
+
+        addCountriesToLayerGroup(
+            fiveEyesCountries,
+            '#0033A0', fiveeyes
+        );
+        
+        const alliedPowers = [
+            "United States of America",
+            "Armenia",
+            "Azerbaijan",
+            "Belarus",
+            "Estonia",
+            "Georgia",
+            "Kazakhstan",
+            "Kyrgyzstan",
+            "Latvia",
+            "Lithuania",
+            "Moldova",
+            "Russia",
+            "Tajikistan",
+            "Turkmenistan",
+            "Ukraine",
+            "Uzbekistan",
+            "United Kingdom",
+            "China",
+            "France",
+            "Poland",
+            "Canada",
+            "Australia",
+            "New Zealand",
+            "India",
+            "South Africa",
+            "Belgium",
+            "Norway",
+            "Netherlands",
+            "Greece",
+            "Czech Republic",
+            "Bosnia and Herzegovina",
+            "Croatia",
+            "North Macedonia",
+            "Montenegro",
+            "Serbia",
+            "Slovenia",
+            "Kosovo",
+            "Brazil"
+        ];
+
+        addCountriesToLayerGroup(
+            alliedPowers,
+            '#012169', ww2allies
+        );
+
+        const euCountries = [
+            "Austria",
+            "Belgium",
+            "Bulgaria",
+            "Croatia",
+            "Cyprus",
+            "Czech Republic",
+            "Denmark",
+            "Estonia",
+            "Finland",
+            "France",
+            "Germany",
+            "Greece",
+            "Hungary",
+            "Ireland",
+            "Italy",
+            "Latvia",
+            "Lithuania",
+            "Luxembourg",
+            "Malta",
+            "Netherlands",
+            "Poland",
+            "Portugal",
+            "Romania",
+            "Slovakia",
+            "Slovenia",
+            "Spain",
+            "Sweden"
+        ];
+
+        addCountriesToLayerGroup(
+            euCountries,
+            '#0034A0', eu
+        );
+
+        const eurozoneCountries = [
+            "Austria",
+            "Belgium",
+            "Croatia",
+            "Cyprus",
+            "Estonia",
+            "Finland",
+            "France",
+            "Germany",
+            "Greece",
+            "Ireland",
+            "Italy",
+            "Latvia",
+            "Lithuania",
+            "Luxembourg",
+            "Malta",
+            "Netherlands",
+            "Portugal",
+            "Slovakia",
+            "Slovenia",
+            "Spain"
+        ];
+
+        addCountriesToLayerGroup(
+            eurozoneCountries,
+            '#0047A0', eok
+        );
+          
     })
     .catch(error => console.error("Error fetching or processing GeoJSON data:", error));
 
@@ -824,7 +1022,16 @@ L.control.layers(null, {
     'Blasts': blastLayer,
     'Air Defenses': airDefenseLayer,
     'Ukraine War': ukraineWar,
-    'BRICS vs G7': bricsvsg7,
+    'BRICS': brics,
+    'G7': g7,
+    'G20': g20,
+    'N.A.T.O.': nato,
+    'Shanghai C.O.': shangai,
+    'Five Eyes': fiveeyes,
+    'E.U.': eu,
+    'Euro Zone': eok,
+    'WW2 Axis': ww2axis,
+    'WW2 Allies': ww2allies,
     'Nuclear Reactors': nuclearFactoriesLayer
 }, { position: 'topright', collapsed: false }).addTo(map);
 
