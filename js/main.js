@@ -701,7 +701,8 @@ function addAirDefenseToMap(airDefense) {
         marker: marker,
         detectionCircle: detectionCircle,
         interceptionCircle: interceptionCircle,
-        reaction_time: airDefense.reaction_time
+        reaction_time: airDefense.reaction_time,
+        isHypersonicCapable: airDefense.isHypersonicCapable
     });
 
     var rating = ' - ';
@@ -766,8 +767,16 @@ function addAirDefenseToMap(airDefense) {
 function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, closestLauncher) {
     var randomFactor = Math.random();
 
-    // Factor 1: Speed of the incoming missile - harder to intercept fast missiles
-    var missileSpeedFactor = closestLauncher.speed > 1000 ? 0.9 : 1.0; // Reduce accuracy for fast missiles
+    // Factor 1: Speed of the incoming missile vs air defense interception speed
+    var missileSpeedRatio = closestLauncher.speed / airDefense.interceptionSpeed; // Ratio of missile speed to interception speed
+    var speedFactor;
+    if (missileSpeedRatio >= 5) {
+        speedFactor = 0.1; // Hypersonic missiles (e.g., Kinzhal) are nearly impossible to intercept unless countered by hypersonic systems
+    } else if (missileSpeedRatio > 1) {
+        speedFactor = 1 - (0.2 * (missileSpeedRatio - 1)); // Gradual penalty for faster missiles
+    } else {
+        speedFactor = 1.0; // No penalty for slower missiles
+    }
 
     // Factor 2: Early detection bonus - higher success if detected early
     var earlyDetectionBonus = (distanceToTarget < airDefense.interceptionRange * 0.7) ? 1.1 : 1.0; // 10% bonus for early detection
@@ -778,8 +787,16 @@ function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime
     // Factor 4: Environmental randomness - simulating interference or weather
     var environmentFactor = 1 - (Math.random() * 0.05); // Small random degradation (e.g., jamming, fog)
 
+    // Factor 5: Hypersonic countermeasures
+    var hypersonicBonus = closestLauncher.speed > 5000 && airDefense.isHypersonicCapable ? 1.2 : 1.0; // Boost if air defense can handle hypersonics
+
     // Final accuracy is a combination of the system's base accuracy and modifiers
-    var modifiedAccuracy = airDefense.accuracy * missileSpeedFactor * earlyDetectionBonus * targetOverloadFactor * environmentFactor;
+    var modifiedAccuracy = airDefense.accuracy 
+        * speedFactor 
+        * earlyDetectionBonus 
+        * targetOverloadFactor 
+        * environmentFactor 
+        * hypersonicBonus;
 
     // Determine interception success
     return randomFactor <= modifiedAccuracy && interceptionTime <= timeToImpact;
@@ -787,6 +804,13 @@ function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime
 //////////////////////////////////////////////////////
 // BLASTS AND INTERCEPTIONS ////////////////////////
 //////////////////////////////////////////////////////
+
+// Speed Classification	Mach Number
+// 1 Mach = 340.29 m/s
+// Subsonic	Mach < 1.0 
+// Transonic	Mach = 1.0
+// Supersonic	Mach > 1.0
+// Hypersonic	Mach > 5.0
 
 // Right-click to set target and find the closest launcher in range
 map.on('contextmenu', function (e) {
