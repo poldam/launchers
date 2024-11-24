@@ -619,7 +619,7 @@ function addLauncherToMap(launcher) {
         <b>${launcher.name}</b><br>
         Model: ${launcher.model}<br>
         Rocket: ${launcher.rocket_name}<br>
-        Speed: ${launcher.speed} m/s<br>
+        Speed: ${launcher.speed} m/s  (${(launcher.speed / 343).toFixed(2)} Mach)<br>
         Max Range: ${rangeKilometers} km<br>
         Blast Radius: ${blastRadiusMeters.toFixed(2)} m
     `, {
@@ -720,7 +720,7 @@ function addAirDefenseToMap(airDefense) {
         Number of Rockets: ${airDefense.num_rockets}/launcher <br>
         Reload time: ${airDefense.reload_time} mins<br>
         Simultanious targets: ${airDefense.max_simultaneous_targets}<br>
-        Interception speed: ${airDefense.interception_speed} m/s<br>
+        Interception speed: ${airDefense.interception_speed} m/s (${(airDefense.interception_speed / 343).toFixed(2)} Mach)<br>
         Reaction time: ${airDefense.reaction_time} s<br>
         Accuracy: ${parseFloat(airDefense.accuracy)*100}%<br>
         Success Rate: ${rating}
