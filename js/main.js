@@ -689,19 +689,19 @@ function addAirDefenseToMap(airDefense) {
         lng: airDefense.lng,
         detectionRange: airDefense.detection_range,
         interceptionRange: airDefense.interception_range,
-        interception_speed: airDefense.interception_speed,
+        interceptionSpeed: airDefense.interception_speed,
         description: airDefense.description,
         total: airDefense.total,
         success: airDefense.success,
         failure: airDefense.failure,
         accuracy: airDefense.accuracy,
-        max_simultaneous_targets: airDefense.max_simultaneous_targets,
-        reload_time: airDefense.reload_time,
-        num_rockets: airDefense.num_rockets,
+        maxSimultaneousTargets: airDefense.max_simultaneous_targets,
+        reloadTime: airDefense.reload_time,
+        numRockets: airDefense.num_rockets,
         marker: marker,
         detectionCircle: detectionCircle,
         interceptionCircle: interceptionCircle,
-        reaction_time: airDefense.reaction_time,
+        reactionTime: airDefense.reaction_time,
         isHypersonicCapable: airDefense.isHypersonicCapable
     });
 
@@ -766,18 +766,22 @@ function addAirDefenseToMap(airDefense) {
 // Simulate interception success based on multiple realistic factors
 function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, closestLauncher) {
     var randomFactor = Math.random();
-
+    
     // Factor 1: Speed of the incoming missile vs air defense interception speed
+    const HYPERSONIC = 1715, SUPERSONIC = 412; // Launcher speeds in m/s
+    
     var missileSpeedRatio = closestLauncher.speed / airDefense.interceptionSpeed; // Ratio of missile speed to interception speed
+    var speedPenalty = 0.2 * (missileSpeedRatio - 1); // Gradual penalty for faster missiles
     var speedFactor;
-    if (missileSpeedRatio >= 5) {
-        speedFactor = 0.1; // Hypersonic missiles (e.g., Kinzhal) are nearly impossible to intercept unless countered by hypersonic systems
-    } else if (missileSpeedRatio > 1) {
-        speedFactor = 1 - (0.2 * (missileSpeedRatio - 1)); // Gradual penalty for faster missiles
+    
+    if (closestLauncher.speed >= HYPERSONIC) {
+        speedFactor = airDefense.isHypersonicCapable ? 1 - speedPenalty : 0.1; // Hypersonic missiles (e.g., Kinzhal) are nearly impossible to intercept unless countered by hypersonic systems
+    } else if (closestLauncher.speed >= SUPERSONIC) {
+        speedFactor = 1 - speedPenalty; 
     } else {
         speedFactor = 1.0; // No penalty for slower missiles
     }
-
+     
     // Factor 2: Early detection bonus - higher success if detected early
     var earlyDetectionBonus = (distanceToTarget < airDefense.interceptionRange * 0.7) ? 1.1 : 1.0; // 10% bonus for early detection
 
@@ -797,7 +801,7 @@ function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime
         * targetOverloadFactor 
         * environmentFactor 
         * hypersonicBonus;
-
+    
     // Determine interception success
     return randomFactor <= modifiedAccuracy && interceptionTime <= timeToImpact;
 }
@@ -818,7 +822,7 @@ map.on('contextmenu', function (e) {
     var targetLng = e.latlng.lng;
     var closestLauncher = null;
     var closestDistance = Infinity;
-
+    
     // Find the closest launcher that is in range
     launchers.forEach(function (launcher) {
         var distance = map.distance([launcher.lat, launcher.lng], [targetLat, targetLng]);
@@ -1029,8 +1033,8 @@ function calculateTimeToImpact(launcherLat, launcherLng, targetLat, targetLng, l
 // Function to calculate interception time for air defense
 function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     var distance = map.distance([airDefense.lat, airDefense.lng], [targetLat, targetLng]);  // Distance to blast point
-    var reactionTime = parseFloat(airDefense.reaction_time);  // Reaction time in seconds
-    var interceptionSpeed = parseFloat(airDefense.interception_speed);  // Speed of intercepting rocket (m/s)
+    var reactionTime = parseFloat(airDefense.reactionTime);  // Reaction time in seconds
+    var interceptionSpeed = parseFloat(airDefense.interceptionSpeed);  // Speed of intercepting rocket (m/s)
 
     if (!interceptionSpeed || interceptionSpeed <= 0) {
         console.error('Invalid interception speed for air defense:', airDefense.name);

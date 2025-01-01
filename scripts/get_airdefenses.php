@@ -27,7 +27,8 @@ try {
             airdefense_templates.accuracy, 
             airdefense_templates.reload_time, 
             airdefense_templates.max_simultaneous_targets, 
-            airdefense_templates.description
+            airdefense_templates.description,
+            airdefense_templates.isHypersonicCapable
         FROM airdefenses
         JOIN airdefense_templates ON airdefenses.model = airdefense_templates.model
         ORDER BY airdefense_templates.country DESC, airdefense_templates.name DESC
