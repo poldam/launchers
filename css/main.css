@@ -14,8 +14,44 @@ body {
     transition: all 0.3s ease;
 }
 
+.logo {
+    position: absolute;
+    top: 20px; 
+    left: 20px; 
+    z-index: 1000; 
+    height: 60px; 
+}
+
+#disclaimer{
+    position: absolute;
+    top: 10px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    z-index: 2000; 
+    width: 70%; 
+    opacity: 0.8;
+}
+
+#info-btn {
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 1000;
+}
+
+#disclaimer:hover{
+    transition: 0.5s;
+    opacity: 1
+}
+
+.close{
+    position: absolute;
+    top: 5px; 
+    right: 10px; 
+}
+
 #map {
-    height: 900px;
+    height: 100%;
     width: 100%;
     border-radius: 4px;
 }

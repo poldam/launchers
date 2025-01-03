@@ -39,7 +39,7 @@ var defenceIcon = L.icon({
     popupAnchor: [0, -40] 
 });
 
-var map = L.map('map').setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
+var map = L.map('map', {zoomControl: false}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
 
 var osm = L.tileLayer ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: ''
@@ -526,7 +526,7 @@ L.control.locateControl = function(opts) {
     return new L.Control.LocateControl(opts);
 }
 
-L.control.locateControl({ position: 'topleft' }).addTo(map);
+L.control.locateControl({ position: 'bottomleft' }).addTo(map);
 
 // Find and locate the user's position
 function findMyLocation() {
