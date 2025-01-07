@@ -39,7 +39,7 @@ var defenceIcon = L.icon({
     popupAnchor: [0, -40] 
 });
 
-var map = L.map('map', {zoomControl: false}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
+var map = L.map('map', {zoomControl: false, minZoom: 2}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
 
 var osm = L.tileLayer ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: ''
@@ -670,10 +670,10 @@ function addAirDefenseToMap(airDefense) {
         radius: airDefense.detection_range,
         color: detectionCircleColor,
         fillOpacity: 0.1,
-        dashArray: '5, 10' // Dashed line for interception range
+        //dashArray: '5, 10', // Dashed line for interception range (Reeeeeeeeeeeeally slow when zooming in)
     }).addTo(airDefenseLayer);
 
-    // Interception range circle (dashed border)
+    // Interception range circle 
     // console.log(airDefense)
     var interceptionCircle = L.circle([airDefense.lat, airDefense.lng], {
         radius: airDefense.interception_range,
@@ -1072,6 +1072,20 @@ function updateLauncherPosition(id, newLat, newLng) {
     });
 }
 
+// Function to update the launcher layer when adding or removing a launcher
+function reloadLauncherLayer(){
+    launcherLayer.clearLayers();
+    launchers = [];
+    loadLaunchers();
+}
+
+// Function to update the airdefense layer when adding or removing a launcher
+function reloadAirdefenseLayer(){
+    airDefenseLayer.clearLayers();
+    airDefenses = [];
+    loadAirDefenses();
+}
+
 // Function to fill the form for editing a launcher
 function fillLauncherForm(launcher) {
     // console.log(launcher)
@@ -1092,14 +1106,16 @@ function fillLauncherForm(launcher) {
 // Confirm deletion of launcher
 $('#confirmDelete').click(function() {
     $.post('./scripts/delete_launcher.php', { id: selectedLauncherId }, function() {
-        location.reload();
+        $('#deleteModal').modal('hide');
+        reloadLauncherLayer();     
     });
 });
 
 // Confirm deletion of air-defense
 $('#airconfirmDelete').click(function() {
     $.post('./scripts/delete_airdefense.php', { id: selectedLauncherId }, function() {
-        location.reload();
+        reloadAirdefenseLayer();
+        $('#airdeleteModal').modal('hide');;
     });
 });
 
@@ -1124,9 +1140,9 @@ $('#saveLauncher').click(function() {
         dataType: 'json',
         success: function(data) {
             if (data.success) {
-                alert('Launcher was saved successfully!');
                 // console.log(data.data);
-                location.reload(); // Reload to display new or updated launcher
+                reloadLauncherLayer(); // Refresh layer
+                $('#launcherModal').modal('hide');    
             } else {
                 alert('Error during launcher creation.');
             }
@@ -1217,8 +1233,8 @@ $('#saveAirDefense').click(function () {
         success: function (data) {
             if (data.success) {
                 // console.log(data)
-                alert('Air Defense saved successfully!');
-                location.reload(); // Reload to display the updated air defenses
+                reloadAirdefenseLayer();
+                $('#airDefenseModal').modal('hide');
             } else {
                 alert('Error saving air defense: ' + data.message);
             }
@@ -1228,7 +1244,8 @@ $('#saveAirDefense').click(function () {
 
 $('#airconfirmDelete').click(function () {
     $.post('./scripts/delete_airdefense.php', { id: selectedAirDefenseId }, function () {
-        location.reload();
+        reloadAirdefenseLayer();
+        $('#airdeleteModal').modal('hide');
     });
 });
 
