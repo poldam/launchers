@@ -1,5 +1,5 @@
 <?php
-session_name('MISSILESv0.1');
+session_name('MISSILESv01');
 session_start();
 
 if(!$_SESSION['loggedin'])

@@ -1,5 +1,5 @@
 <?php
-    session_name('MISSILESv0.1');
+    session_name('MISSILESv01');
     session_start();
 
     $_SESSION['loggedin'] = true;
@@ -13,7 +13,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Missiles/Rockets/Artillery/Drones vs Air Defenses</title>
+    <title>MISSILES v0.1</title>
     <link href="./css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./css/leaflet.css" />
      
@@ -22,15 +22,16 @@
     <link rel="stylesheet" href="./css/main.css" />  
 </head>
 <body>
-    <div class="container-fluid mt-4">
-        <h1><a href="../"><img src="../logo.png" class="logo" alt="" height="60"></a> Missiles v0.1</h1>
+    <div class="d-flex vh-100 vw-100">
+        <a href="../"><img src="../logo.png" class="logo" alt=""></a> 
 
-        <div class="alert alert-danger mb-3"> 
+        <div class="alert alert-danger mb-3" id='disclaimer'> 
             <strong>DISCLAIMER:</strong> The information provided in this application is for scientific, educational, and experimental purposes only. 
             While we strive to present accurate and useful data, the information contained herein may not be verified or completely reliable. 
             We do not promote, condone, or encourage warfare, violence, or aggressive actions of any kind. This application is intended solely 
             for research and educational exploration, and users are advised to exercise caution and responsibility when interpreting or utilizing the data presented.
-        </div>
+            <button type="button" class="close" onclick="document.getElementById('disclaimer').style.display='none'">&times;</button>
+        </div> 
 
         <div id="map" class="mb-3"></div>
 
@@ -124,26 +125,49 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rangeModal">
-            Range Calculation
+        <button type="button" id="info-btn" class="btn" onclick="$('#infoModal').modal('show')">
+            <img src="images/info.png" alt="Info" width="40" height="40">
         </button>
 
-        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#blastRadiusModal">
-            Blast Radius Calculation
-        </button>
+        <!-- Info modal -->
+        <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Info</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+                <!-- Buttons -->
+                <div class="modal-body">
+                    <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#rangeModal">
+                        Range Calculation
+                    </button>
 
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#icbmModal">
-            Factors Affecting ICBM Range
-        </button>
+                    <button type="button" class="btn btn-secondary mb-2" data-toggle="modal" data-target="#blastRadiusModal">
+                        Blast Radius Calculation
+                    </button>
 
-        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#instructionsModal">
-            Instructions
-        </button>
-        <?php if(!empty($_SESSION['loggedin'])) { ?>
-            <hr>
-            <a href ="./launchers/">Offense Templates</a> | 
-            <a href ="./airdefenses/">Defense Templates</a> 
-        <?php } ?>
+                    <button type="button" class="btn btn-success mb-2" data-toggle="modal" data-target="#icbmModal">
+                        Factors Affecting ICBM Range
+                    </button>
+
+                    <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#instructionsModal">
+                        Instructions
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <!-- Templates -->
+                    <?php if(!empty($_SESSION['loggedin'])) { ?>
+                        <a href ="./launchers/">Offense Templates</a> | 
+                        <a href ="./airdefenses/">Defense Templates</a> 
+                    <?php } ?> 
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+        </div>     
 
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
