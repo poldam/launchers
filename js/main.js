@@ -934,7 +934,6 @@ map.on('contextmenu', function (e) {
                 });
                 var interceptionMarker = L.marker(interceptionPoint, { icon: interceptionIcon }).addTo(map);
 
-                // Show a tooltip with interception info
                 interceptionMarker.bindTooltip(`
                     <b>${airDefense.name}</b> intercepted the rocket!<br>
                     Time to Impact: ${timeToImpact.toFixed(2)} sec<br>
@@ -956,10 +955,8 @@ map.on('contextmenu', function (e) {
         }
 
         if (!INTERCEPTED) {
-            // Missile was not intercepted by any air defense, so add the blast to the map
             blastCircle.addTo(blastLayer);
 
-            // Add hover info to blast circle
             blastCircle.bindTooltip(`
                 <b>${closestLauncher.name}</b><br>
                 Model: ${closestLauncher.model}<br>
@@ -971,7 +968,6 @@ map.on('contextmenu', function (e) {
             });
         }
     } else {
-        // No air defenses in range, proceed with the blast
         blastCircle.addTo(blastLayer);
         blastCircle.bindTooltip(`
             <b>${closestLauncher.name}</b><br>
@@ -986,32 +982,26 @@ map.on('contextmenu', function (e) {
 });
 
 function calculateInterceptionPoint(launcherLat, launcherLng, targetLat, targetLng, interceptionTime, timeToImpact, airDefense) {
-    var totalDistance = map.distance([launcherLat, launcherLng], [targetLat, targetLng]);  // Total distance to target
-    var interceptionDistance = (interceptionTime / timeToImpact) * totalDistance;  // Calculate interception distance
+    var totalDistance = map.distance([launcherLat, launcherLng], [targetLat, targetLng]);  
+    var interceptionDistance = (interceptionTime / timeToImpact) * totalDistance; 
 
-    // Convert interception range to float and constrain interception distance
-    var interceptionRangeMeters = parseFloat(airDefense.interceptionRange);  // Interception range in meters
+    var interceptionRangeMeters = parseFloat(airDefense.interceptionRange);  
 
-    // Ensure the interception distance doesn't exceed the interception range
     if (interceptionDistance > interceptionRangeMeters) {
-        interceptionDistance = interceptionRangeMeters;  // Constrain interception distance to interception range
+        interceptionDistance = interceptionRangeMeters;  
     }
 
-    // If the total distance is zero, return the target point (edge case)
     if (totalDistance === 0) {
         return [targetLat, targetLng];
     }
 
-    // Scale the interception distance and ensure it doesn't exceed interception range
-    var factor = interceptionDistance / totalDistance;  // Factor to scale the lat/lng changes
+    var factor = interceptionDistance / totalDistance; 
 
     var interceptionLat = parseFloat(launcherLat) + (parseFloat(targetLat) - parseFloat(launcherLat)) * factor;
     var interceptionLng = parseFloat(launcherLng) + (parseFloat(targetLng) - parseFloat(launcherLng)) * factor;
 
-    // Calculate the distance from air defense to interception point
     var distanceToInterception = map.distance([airDefense.lat, airDefense.lng], [interceptionLat, interceptionLng]);
 
-    // If the calculated interception point is outside the interception range, adjust it to the edge of the interception range
     if (distanceToInterception > interceptionRangeMeters) {
         var scalingFactor = interceptionRangeMeters / distanceToInterception;  // Scale to bring within range
         interceptionLat = parseFloat(airDefense.lat) + (parseFloat(interceptionLat) - parseFloat(airDefense.lat)) * scalingFactor;
@@ -1024,13 +1014,11 @@ function calculateInterceptionPoint(launcherLat, launcherLng, targetLat, targetL
     return [interceptionLat, interceptionLng];  // Return the adjusted interception point
 }
 
-// Function to calculate time to impact for launcher
 function calculateTimeToImpact(launcherLat, launcherLng, targetLat, targetLng, launcherSpeed) {
     var distance = map.distance([launcherLat, launcherLng], [targetLat, targetLng]);  // Distance in meters
     return distance / launcherSpeed;  // Time = Distance / Speed (seconds)
 }
 
-// Function to calculate interception time for air defense
 function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     var distance = map.distance([airDefense.lat, airDefense.lng], [targetLat, targetLng]);  // Distance to blast point
     var reactionTime = parseFloat(airDefense.reactionTime);  // Reaction time in seconds
@@ -1044,7 +1032,6 @@ function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     return reactionTime + (distance / interceptionSpeed);  // Total interception time = reaction time + travel time
 }
 
-// Add the layer control to the map
 L.control.layers(null, {
     'Launchers & Ranges': launcherLayer,
     'Blasts': blastLayer,
@@ -1063,7 +1050,6 @@ L.control.layers(null, {
     'Nuclear Reactors': nuclearFactoriesLayer
 }, { position: 'topright', collapsed: false }).addTo(map);
 
-// Function to update launcher position via AJAX
 function updateLauncherPosition(id, newLat, newLng) {
     $.post('./scripts/update_launcher_coords.php', {
         id: id,
@@ -1072,9 +1058,7 @@ function updateLauncherPosition(id, newLat, newLng) {
     });
 }
 
-// Function to fill the form for editing a launcher
 function fillLauncherForm(launcher) {
-    // console.log(launcher)
     $('#launcherId').val(launcher.id);
     $('#template').val(launcher.templateID);
     $('#name').val(launcher.name);
@@ -1089,26 +1073,22 @@ function fillLauncherForm(launcher) {
     $('#launcherdescription').text(description);
 }
 
-// Confirm deletion of launcher
 $('#confirmDelete').click(function() {
     $.post('./scripts/delete_launcher.php', { id: selectedLauncherId }, function() {
         location.reload();
     });
 });
 
-// Confirm deletion of air-defense
 $('#airconfirmDelete').click(function() {
     $.post('./scripts/delete_airdefense.php', { id: selectedLauncherId }, function() {
         location.reload();
     });
 });
 
-// Save new or updated launcher via AJAX
 $('#saveLauncher').click(function() {
     var formData = new FormData(document.getElementById('launcherData'));
     var launcherId = $('#launcherId').val();
 
-    // Append launcherId to the form data if we are updating
     if (launcherId) {
         formData.append('launcherId', launcherId);
     }
@@ -1125,8 +1105,7 @@ $('#saveLauncher').click(function() {
         success: function(data) {
             if (data.success) {
                 alert('Launcher was saved successfully!');
-                // console.log(data.data);
-                location.reload(); // Reload to display new or updated launcher
+                location.reload(); 
             } else {
                 alert('Error during launcher creation.');
             }
@@ -1138,9 +1117,7 @@ $('#saveLauncher').click(function() {
 var clickedLat = null;
 var clickedLng = null;
 
-// Left-click event to open selection modal
 map.on('click', function(e) {
-    // Store the clicked location
     clickedLat = e.latlng.lat;
     clickedLng = e.latlng.lng;
 

@@ -2,7 +2,7 @@
     session_name('MISSILESv01');
     session_start();
 
-    $_SESSION['loggedin'] = true;
+    // $_SESSION['loggedin'] = true;
 
     require_once('./libraries/lib.php');
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -131,42 +131,40 @@
 
         <!-- Info modal -->
         <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="infoModalLabel">Info</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-                <!-- Buttons -->
-                <div class="modal-body">
-                    <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#rangeModal">
-                        Range Calculation
-                    </button>
-
-                    <button type="button" class="btn btn-secondary mb-2" data-toggle="modal" data-target="#blastRadiusModal">
-                        Blast Radius Calculation
-                    </button>
-
-                    <button type="button" class="btn btn-success mb-2" data-toggle="modal" data-target="#icbmModal">
-                        Factors Affecting ICBM Range
-                    </button>
-
-                    <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#instructionsModal">
-                        Instructions
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">Info</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-footer">
-                    <!-- Templates -->
-                    <?php if(!empty($_SESSION['loggedin'])) { ?>
-                        <a href ="./launchers/">Offense Templates</a> | 
-                        <a href ="./airdefenses/">Defense Templates</a> 
-                    <?php } ?> 
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <div class="modal-body">
+                        <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#rangeModal">
+                            Range Calculation
+                        </button>
+
+                        <button type="button" class="btn btn-secondary mb-2" data-toggle="modal" data-target="#blastRadiusModal">
+                            Blast Radius Calculation
+                        </button>
+
+                        <button type="button" class="btn btn-success mb-2" data-toggle="modal" data-target="#icbmModal">
+                            Factors Affecting ICBM Range
+                        </button>
+
+                        <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#instructionsModal">
+                            Instructions
+                        </button>
+                    </div>
+                    <div class="modal-footer">
+                        <?php if(!empty($_SESSION['loggedin'])) { ?>
+                            <a href ="./launchers/">Offense Templates</a> | 
+                            <a href ="./airdefenses/">Defense Templates</a> 
+                        <?php } ?> 
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
-        </div>
         </div>     
 
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">
@@ -290,7 +288,6 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Content -->
                         <h5><strong>Multi-stage Propulsion</strong></h5>
                         <p>
                             ICBMs like the RS-24 Yars use multiple stages of propulsion, with each stage propelling the missile to much higher speeds than conventional rockets. 
@@ -374,12 +371,10 @@
                         <form id="airDefenseData">
                             <input type="hidden" id="airDefenseId" name="airDefenseId">
                             
-                            <!-- Air Defense Template Dropdown (mandatory) -->
                             <label for="airDefenseTemplate">Select Air Defense Template:</label>
                             <select id="airDefenseTemplate" name="airDefenseTemplate" class="form-control" required>
                                 <option value=""> -- Select Air Defense System -- </option>
                                 <?php
-                                    // PHP to populate the dropdown with air defense templates from the database
                                     $stmt = $pdo->prepare('SELECT * FROM airdefense_templates ORDER BY country DESC, name DESC');
                                     $stmt->execute();
                                     while ($template = $stmt->fetch()) {
@@ -388,7 +383,6 @@
                                 ?>
                             </select>
 
-                            <!-- Editable Air Defense Name -->
                             <div class="form-group mt-3">
                                 <label for="airDefenseName">Air Defense Name:</label>
                                 <input type="text" class="form-control" id="airDefenseName" name="airDefenseName" required>
@@ -396,7 +390,6 @@
 
                             <div class="alert alert-info" id="airdescription"></div>
 
-                            <!-- Latitude and Longitude (hidden, set when placing on map) -->
                             <input type="hidden" id="airDefenselat" name="airDefenselat">
                             <input type="hidden" id="airDefenselng" name="airDefenselng">
                         </form>
@@ -421,7 +414,6 @@
                 <div class="modal-body">
                     <div class="container">
                     <div class="row">
-                        <!-- Left Column: Application Instructions -->
                         <div class="col-md-6">
                         <h4>Application Instructions</h4>
                         <p><strong>1. Adding a Launcher:</strong><br>
@@ -453,7 +445,6 @@
                         </p>
                         </div>
 
-                        <!-- Right Column: Interception Logic -->
                         <div class="col-md-6">
                         <h4>Interception Logic</h4>
                         <p><strong>Interception Process:</strong><br>
