@@ -45,6 +45,7 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <th>Reload Time (s)</th> <!-- seconds for reload time -->
                     <th>Max Simultaneous Targets</th>
                     <th>Interception Speed (m/s)</th> <!-- meters per second for interception speed -->
+                    <th>Hypersonic Capable</th>
                     <th>Description</th>
                     <th>Actions</th>
                 </tr>
@@ -64,6 +65,7 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= $airdefense['reload_time'] ?></td>
                     <td><?= $airdefense['max_simultaneous_targets'] ?></td>
                     <td><?= $airdefense['interception_speed'] ?></td>
+                    <td><?= $airdefense['isHypersonicCapable'] ?></td>
                     <td><?= $airdefense['description'] ?></td>
                     <td>
                         <button class="btn btn-primary btn-edit" data-id="<?= $airdefense['id'] ?>">Edit</button>
@@ -146,9 +148,18 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
 
                         <div class="form-group">
+                            <label for="isHypersonicCapable">isHypersonicCapable</label>
+                            <select class="form-control" id="isHypersonicCapable" name="isHypersonicCapable" required>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label for="description">Description</label>
                             <textarea class="form-control" id="description" name="description" required></textarea>
                         </div>
+
 
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </form>
@@ -226,6 +237,14 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
 
                         <div class="form-group">
+                            <label for="add_isHypersonicCapable">isHypersonicCapable</label>
+                            <select class="form-control" id="add_isHypersonicCapable" name="isHypersonicCapable" required>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label for="add_description">Description</label>
                             <textarea class="form-control" id="add_description" name="description" required></textarea>
                         </div>
@@ -271,6 +290,7 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         $('#reload_time').val(airdefense.reload_time);
                         $('#max_simultaneous_targets').val(airdefense.max_simultaneous_targets);
                         $('#interception_speed').val(airdefense.interception_speed);
+                        $('#isHypersonicCapable').val(airdefense.isHypersonicCapable);
                         $('#description').val(airdefense.description);
                         $('#editAirDefenseModal').modal('show');
                     }
