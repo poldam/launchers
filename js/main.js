@@ -1089,20 +1089,34 @@ function fillLauncherForm(launcher) {
 }
 
 $('#confirmDelete').click(function() {
+    var $button = $(this); 
+    if ($button.prop('disabled')) return; 
+    $button.prop('disabled', true); 
+
     $.post('./scripts/delete_launcher.php', { id: selectedLauncherId }, function() {
         $('#deleteModal').modal('hide');
-        reloadLauncherLayer();     
+        reloadLauncherLayer();
+        $button.prop('disabled', false);     
     });
 });
 
-$('#airconfirmDelete').click(function() {
-    $.post('./scripts/delete_airdefense.php', { id: selectedLauncherId }, function() {
+$('#airconfirmDelete').click(function () {
+    var $button = $(this); 
+    if ($button.prop('disabled')) return; 
+    $button.prop('disabled', true); 
+    $.post('./scripts/delete_airdefense.php', { id: selectedAirDefenseId }, function () {
         reloadAirdefenseLayer();
-        $('#airdeleteModal').modal('hide');;
+        $('#airdeleteModal').modal('hide');
+        $button.prop('disabled', false); 
+        
     });
 });
 
 $('#saveLauncher').click(function() {
+    if ($(this).prop('disabled')) return; 
+    var $button = $(this); 
+    $button.prop('disabled', true);
+
     var formData = new FormData(document.getElementById('launcherData'));
     var launcherId = $('#launcherId').val();
 
@@ -1127,8 +1141,10 @@ $('#saveLauncher').click(function() {
             } else {
                 alert('Error during launcher creation.');
             }
-        }
+        },
+        complete: function () { $button.prop('disabled', false); }
     });
+    
 });
 
 // Track clicked position
@@ -1197,10 +1213,14 @@ $('#airDefenseTemplate').on('change', function() {
 });
 
 $('#saveAirDefense').click(function () {
-    var formData = new FormData(document.getElementById('airDefenseData'));
-    var airDefenseId = $('#airDefenseId').val();
+    if ($(this).prop('disabled')) return; 
+    var $button = $(this); 
+    $button.prop('disabled', true);
 
-    var url = './scripts/save_airdefense.php'; 
+    var formData = new FormData(document.getElementById('airDefenseData'));
+    var airdefenseId = $('#airDefenseId').val();
+
+    var url = airdefenseId ? './scripts/update_airdefense.php' : './scripts/save_airdefense.php'; 
 
     $.ajax({
         url: url,
@@ -1217,14 +1237,8 @@ $('#saveAirDefense').click(function () {
             } else {
                 alert('Error saving air defense: ' + data.message);
             }
-        }
-    });
-});
-
-$('#airconfirmDelete').click(function () {
-    $.post('./scripts/delete_airdefense.php', { id: selectedAirDefenseId }, function () {
-        reloadAirdefenseLayer();
-        $('#airdeleteModal').modal('hide');
+        },
+        complete: function () { $button.prop('disabled', false); }
     });
 });
 

@@ -24,7 +24,7 @@ body {
 
 #disclaimer{
     position: absolute;
-    top: 10px; 
+    bottom: 10px; 
     left: 50%;
     transform: translateX(-50%); 
     z-index: 2000; 
@@ -32,16 +32,16 @@ body {
     opacity: 0.8;
 }
 
+#disclaimer:hover{
+    transition: 0.5s;
+    opacity: 1
+}
+
 #info-btn {
     position: fixed; 
     bottom: 20px; 
     right: 20px; 
     z-index: 1000;
-}
-
-#disclaimer:hover{
-    transition: 0.5s;
-    opacity: 1
 }
 
 .close{
