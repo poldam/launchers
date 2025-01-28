@@ -2,7 +2,7 @@
     session_name('MISSILESv01');
     session_start();
 
-    // $_SESSION['loggedin'] = true;
+     $_SESSION['loggedin'] = true;
 
     require_once('./libraries/lib.php');
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -79,6 +79,63 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveLauncher">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="scenarioModal" tabindex="-1" aria-labelledby="scenarioModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="scenarioModalLabel">Select a Scenario</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                <input type="hidden" id="scenarioId" name="scenarioId">
+                    <select id="scenario" class="form-control">
+                    <option value="">Select a scenario...</option>
+                    <?php
+                        $stmt = $pdo->prepare('SELECT * FROM scenarios');
+                        $stmt->execute();
+                        while ($scenario = $stmt->fetch()) {
+                            echo '<option value="' . $scenario['s_id'] . '">' . $scenario['name'] . '</option>';
+                        }
+                    ?>
+                    </select>
+                </div>
+                <div class="modal-footer">   
+                    <?php if(!empty($_SESSION['loggedin'])) { ?>
+                        <button type="button" class="btn btn-link" id="deleteScenario">Delete Selected</button>
+                        <button type="button" class="btn btn-link" id="newScenario">Add New</button>
+                    <?php } ?>           
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="selectScenario">Select</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="addScenarioModal" tabindex="-1" aria-labelledby="addScenarioModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addScenarioModalLabel">Add New Scenario</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="scenarioName">Scenario Name</label>
+                            <input type="text" class="form-control" id="scenarioName" placeholder="Enter scenario name">
+                        </div>
+                    </div>
+                    <div class="modal-footer">                      
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="addScenario">Add</button>
                     </div>
                 </div>
             </div>

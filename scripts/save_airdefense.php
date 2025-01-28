@@ -10,7 +10,7 @@ try {
     $templateId = $_POST['airDefenseTemplate']; // Template ID from the dropdown
     $lat = floatval($_POST['airDefenselat']);
     $lng = floatval($_POST['airDefenselng']);
-
+    $s_id = $_POST['s_id'];
     // Fetch data from the template based on the templateId
     $stmt = $pdo->prepare('SELECT * FROM airdefense_templates WHERE id = ?');
     $stmt->execute([$templateId]);
@@ -33,9 +33,9 @@ try {
 
     
     // Insert new air defense
-    $stmt = $pdo->prepare('INSERT INTO airdefenses (name, model, country, num_rockets, reaction_time, detection_range, interception_range, accuracy, lat, lng, interception_speed, description, templateId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId]);
-    $response = ['success' => true, 'message' => 'Air defense added successfully', 'data' => [$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId]];
+    $stmt = $pdo->prepare('INSERT INTO airdefenses (name, model, country, num_rockets, reaction_time, detection_range, interception_range, accuracy, lat, lng, interception_speed, description, templateId, s_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $s_id]); 
+    $response = ['success' => true, 'message' => 'Air defense added successfully', 'data' => [$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $s_id]];
    
 
     echo json_encode($response);

@@ -473,6 +473,8 @@ var selectedLauncherId = null;
 var currentMarker = null;
 var rangeCircle = null;
 
+var scenarioId = null;
+
 var userMarker = null; // Store the user location marker
 var userCircle = null; // Store the user location circle
 
@@ -481,9 +483,11 @@ function loadLaunchers() {
     $.ajax({
         url: './scripts/get_launchers.php',
         type: 'GET',
+        data: {s_id: scenarioId},
         dataType: 'json',
         success: function(data) {
             data.forEach(function(launcher) {
+                //console.log(launcher);
                 addLauncherToMap(launcher);
             });
         }
@@ -491,9 +495,11 @@ function loadLaunchers() {
 }
 
 function loadAirDefenses() {
+    if(!scenarioId) return;
     $.ajax({
         url: './scripts/get_airdefenses.php', // Fetch air defenses from the server
         type: 'GET',
+        data: {s_id: scenarioId},
         dataType: 'json',
         success: function(data) {
             data.forEach(function(airDefense) {
@@ -505,6 +511,90 @@ function loadAirDefenses() {
         }
     });
 }
+
+//////////////////////////////////////
+// Scenario Control Button///////////////////
+//////////////////////////////////////
+L.Control.scenarioControl = L.Control.extend({
+    onAdd: function() {
+        var div = L.DomUtil.create('div', 'leaflet-control-locate');
+        div.innerHTML = 'Scenarios';
+        div.onclick = function(e) {
+            L.DomEvent.stopPropagation(e);
+            $('#scenarioModal').modal('show'); 
+        };
+        return div;
+    }
+});
+
+// Add button to the map
+L.control.scenarioControl = function(opts) {
+    return new L.Control.scenarioControl(opts);
+}
+
+$('#selectScenario').click(function () {
+    scenarioId = $('#scenario').val();
+    $('#scenarioId').val(scenarioId);
+    //console.log(scenarioId);
+    $('#scenarioModal').modal('hide');
+
+    reloadAirdefenseLayer();
+    reloadLauncherLayer();   
+});
+
+$('#newScenario').click(function () {
+    $('#scenarioModal').modal('hide');
+    $('#addScenarioModal').modal('show');
+});
+
+// Opens modal for adding a new scenario
+$('#newScenario').click(function () {
+    $('#scenarioModal').modal('hide');
+    $('#addScenarioModal').modal('show');
+});
+
+// Adds new scenario
+$('#addScenario').click(function() {
+    var scenarioname = $('#scenarioName').val();
+
+    $.ajax({
+        url: './scripts/add_scenario.php',
+        type: 'POST',
+        data: {name: scenarioname},
+        dataType: 'json',
+        success: function() {
+            alert('Scenario added successfully');
+            location.reload();
+        },
+        error: function(error) {
+            console.error("Error adding scenario", error);
+        }
+    });
+
+})
+
+$('#deleteScenario').click(function() {
+    var s_id = $('#scenario').val();
+
+    if(!s_id){
+        alert('Please select a scenario');
+        return;
+    }
+
+    $.ajax({
+        url: './scripts/delete_scenario.php',
+        type: 'POST',
+        data: {s_id: s_id},
+        dataType: 'json',
+        success: function() {
+            alert('Scenario deleted successfully');
+            location.reload();
+        },
+        error: function(error) {
+            console.error("Error deleting scenario", error);
+        }
+    });
+});
 
 ///////////////////////////////////////////
 // FIND MY LOCATION ///////////////////////
@@ -521,12 +611,9 @@ L.Control.LocateControl = L.Control.extend({
     }
 });
 
-// Add button to the map
 L.control.locateControl = function(opts) {
     return new L.Control.LocateControl(opts);
 }
-
-L.control.locateControl({ position: 'bottomleft' }).addTo(map);
 
 // Find and locate the user's position
 function findMyLocation() {
@@ -553,6 +640,10 @@ function findMyLocation() {
         alert("Location access denied or not available.");
     });
 }
+
+// Add buttons to the map
+L.control.locateControl({ position: 'bottomleft' }).addTo(map);
+L.control.scenarioControl({ position: 'bottomleft' }).addTo(map);
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -1119,9 +1210,16 @@ $('#saveLauncher').click(function() {
 
     var formData = new FormData(document.getElementById('launcherData'));
     var launcherId = $('#launcherId').val();
-
+    var s_id = $('#scenarioId').val();
+    if(!s_id){
+        alert('Please select a scenario');
+        $button.prop('disabled', false);
+        return;
+    }
+        
+    formData.append('s_id', s_id);
     if (launcherId) {
-        formData.append('launcherId', launcherId);
+        formData.append('launcherId', launcherId);    
     }
 
     var url = launcherId ? './scripts/update_launcher.php' : './scripts/save_launcher.php'; // Use update if launcherId exists
@@ -1219,6 +1317,15 @@ $('#saveAirDefense').click(function () {
 
     var formData = new FormData(document.getElementById('airDefenseData'));
     var airdefenseId = $('#airDefenseId').val();
+    var s_id = $('#scenarioId').val();
+
+    if(!s_id){
+        alert('Please select a scenario');
+        $button.prop('disabled', false);
+        return;
+    }
+
+    formData.append('s_id', s_id);
 
     var url = airdefenseId ? './scripts/update_airdefense.php' : './scripts/save_airdefense.php'; 
 
@@ -1264,5 +1371,6 @@ function fillAirDefenseForm(airDefense) {
     $('#airDefenseTemplate').val(airDefense.templateID).trigger('change');
 }
 
-loadLaunchers(); // Load launchers on page load
-loadAirDefenses();
+$(document).ready(function() {
+    $('#scenarioModal').modal('show');
+});
