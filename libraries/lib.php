@@ -1,15 +1,9 @@
 <?php
 ## ONLINE DB 
-    $host = '213.158.90.13';
-    $db = 'estrosdb1';
-    $user = 'estrosdb1user1';
-    $pass = '0m3K9^9pv*dFres@';
-
-## LOCAL DB 
-    // $host = 'localhost';
-    // $db = 'launchers';
-    // $user = 'root';
-    // $pass = '';
+$host = '213.158.90.13';
+$db = 'estrosdb1';
+$user = 'estrosdb1user1';
+$pass = '0m3K9^9pv*dFres@';
 
 // Function to calculate the blast radius
 function calculateBlastRadius($yield_tnt, $overpressure_psi) {

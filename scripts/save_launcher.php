@@ -6,12 +6,12 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $s_id = $_POST['s_id']; // scenario id
     $name = $_POST['name'];
     $lat = $_POST['lat'];
     $lng = $_POST['lng'];
+
     $description = '';
-    
+
     if(!empty($_POST['template'])) {
         $templateId = intval($_POST['template']);
         // Fetch the template data from the database
@@ -37,8 +37,8 @@ try {
     } 
 
     // Insert a new launcher into the database
-    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description, templateID, s_id) 
-                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description, :templateID, :s_id )');
+    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description, templateID) 
+                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description, :templateID )');
     $stmt->execute([
         ':name' => $name,
         ':model' => $model,
@@ -53,8 +53,7 @@ try {
         ':blast_radius' => $blast_radius,
         ':range' => $range,
         ':description' => $description,
-        ':templateID' => $templateId,
-        ':s_id' => $s_id
+        ':templateID' => $templateId
     ]);
 
     echo json_encode(['success' => true]);
