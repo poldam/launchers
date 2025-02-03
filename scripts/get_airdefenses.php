@@ -4,7 +4,7 @@ session_start();
 require_once('../libraries/lib.php'); 
 header('Content-Type: application/json');
 
-$google_id = $_SESSION['google_id'];
+$user_id = isset($_SESSION['google_id']) ? $_SESSION['google_id'] : session_id();
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -13,7 +13,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT 
             airdefenses.id,
-            airdefenses.google_id, 
+            airdefenses.user_id, 
             airdefenses.name, 
             airdefenses.total, 
             airdefenses.success, 
@@ -35,10 +35,10 @@ try {
             airdefense_templates.isHypersonicCapable
         FROM airdefenses
         JOIN airdefense_templates ON airdefenses.model = airdefense_templates.model 
-		WHERE airdefenses.google_id = :google_id
+		WHERE airdefenses.user_id = :user_id
         ORDER BY airdefense_templates.country DESC, airdefense_templates.name DESC
     ");
-    $stmt->execute([':google_id' => $google_id]);
+    $stmt->execute([':user_id' => $user_id]);
     $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode($airdefenses);

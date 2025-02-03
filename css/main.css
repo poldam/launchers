@@ -84,7 +84,7 @@ body {
 }
 
 .google-logo {
-    width: 30px;
+    width: 20px;
     margin-right: 10px;
 }
 
@@ -92,12 +92,13 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 20px;
     background-color: #ffffff;
     border: 1px solid #dfdfdf;
-    border-radius: 4px;
+    padding: 8px;
+    border-radius: 5px;
     color: #333333;
     cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     transition: background-color 0.3s ease;
 }
 

@@ -31,13 +31,13 @@ try {
     $country = $template['country'];
     $interception_speed = $template['interception_speed'];
     $description = $template['description'];
-    $google_id = $_SESSION['google_id'];
+    $user_id = isset($_SESSION['google_id']) ? $_SESSION['google_id'] : session_id();
 
     
     // Insert new air defense
-    $stmt = $pdo->prepare('INSERT INTO airdefenses (name, model, country, num_rockets, reaction_time, detection_range, interception_range, accuracy, lat, lng, interception_speed, description, templateId, google_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $google_id]);
-    $response = ['success' => true, 'message' => 'Air defense added successfully', 'data' => [$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $google_id]];
+    $stmt = $pdo->prepare('INSERT INTO airdefenses (name, model, country, num_rockets, reaction_time, detection_range, interception_range, accuracy, lat, lng, interception_speed, description, templateId, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $user_id]);
+    $response = ['success' => true, 'message' => 'Air defense added successfully', 'data' => [$name, $model, $country, $numRockets, $reactionTime, $detectionRange, $interception_range, $accuracy, $lat, $lng, $interception_speed, $description, $templateId, $user_id]];
    
 
     echo json_encode($response);

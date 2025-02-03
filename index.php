@@ -38,25 +38,12 @@
 
         <div id="map" class="mb-3"></div>
         
-        <?php if (!isset($_SESSION['google_id'])): ?>
-        <!-- Login Modal -->
-        <div class="modal fade show" id="googleLoginModal" tabindex="-1" aria-labelledby="googleLoginModalLabel" aria-hidden="true" style="display: block;">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="googleLoginModalLabel">Login with Google</h5>
-                    </div>
-                    <div class="modal-body text-center">
-                        <button class="google-btn" onclick="window.location.href='<?php echo htmlspecialchars($login_url); ?>'">
-                            <img class="google-logo" src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo">
-                            <span>Login with Google</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
+        <script>
+            // pass login_url to main.js
+            window.loginUrl = "<?php echo htmlspecialchars($login_url); ?>";
+        </script>
 
+        </script> 
 
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -180,9 +167,11 @@
                         </button>
                     </div>
                     <div class="modal-footer">
-                    <a href ="./auth/logout.php">Logout</a>
+                    <?php if(!empty($_SESSION['google_id'])) { ?>                            
+                        <a href ="./auth/logout.php">Logout</a>
+                    <?php } ?>
                         <?php if(!empty($_SESSION['loggedin'])) { ?>
-                            | <a href ="./launchers/">Offense Templates</a> | 
+                            <a href ="./launchers/">Offense Templates</a> | 
                             <a href ="./airdefenses/">Defense Templates</a> 
                         <?php } ?> 
 

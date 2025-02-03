@@ -1,3 +1,5 @@
+var google_id = null;
+var session_id = null;
 
 $(document).ready(function() {
     $('#template').on('change', function() {
@@ -506,6 +508,29 @@ function loadAirDefenses() {
     });
 }
 
+///////////////////////////////
+// Google Login Button//////
+///////////////////////////
+L.Control.LoginControl = L.Control.extend({
+    onAdd: function () {
+    var div = L.DomUtil.create('div', 'google-btn-login');
+    div.innerHTML = `
+      <button class="google-btn" onclick="window.location.href='${window.loginUrl}'">
+        <img class="google-logo" src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo">
+        <span>Login with Google</span>
+      </button>
+    `;
+    div.onclick = function(e) {
+        L.DomEvent.stopPropagation(e);
+    };
+    return div;
+  }
+});
+
+L.control.LoginControl = function(opts) {
+    return new L.Control.LoginControl(opts);
+}
+
 ///////////////////////////////////////////
 // FIND MY LOCATION ///////////////////////
 // Add custom button for finding location
@@ -521,12 +546,9 @@ L.Control.LocateControl = L.Control.extend({
     }
 });
 
-// Add button to the map
 L.control.locateControl = function(opts) {
     return new L.Control.LocateControl(opts);
 }
-
-L.control.locateControl({ position: 'bottomleft' }).addTo(map);
 
 // Find and locate the user's position
 function findMyLocation() {
@@ -1264,5 +1286,31 @@ function fillAirDefenseForm(airDefense) {
     $('#airDefenseTemplate').val(airDefense.templateID).trigger('change');
 }
 
-loadLaunchers(); // Load launchers on page load
-loadAirDefenses();
+// On page load
+$.getJSON("./scripts/get_session_data.php", function(data) {
+    // Get session data
+    google_id = data['google_id']; 
+    session_id = data['session_id'];
+
+    // Add buttons to map
+    if(google_id == null) // Show button if not logged in
+        L.control.LoginControl({ position: 'bottomleft' }).addTo(map);
+
+    L.control.locateControl({ position: 'bottomleft' }).addTo(map);
+    
+    // Load launchers on page load
+    loadLaunchers(); 
+    loadAirDefenses();  
+});
+
+
+// On page close
+window.addEventListener("beforeunload", function(event) {
+    navigator.sendBeacon("./scripts/delete_temp_launchers.php");
+});
+
+window.addEventListener("beforeunload", function(event) {
+    navigator.sendBeacon("./scripts/delete_temp_airdefenses.php");
+});
+
+
