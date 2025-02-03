@@ -5,6 +5,12 @@ $db = 'estrosdb1';
 $user = 'estrosdb1user1';
 $pass = '0m3K9^9pv*dFres@';
 
+// ## LOCAL DB
+// $host = 'localhost';          
+// $db = 'launchers';      
+// $user = 'root';               
+// $pass = '';    
+
 // Function to calculate the blast radius
 function calculateBlastRadius($yield_tnt, $overpressure_psi) {
     // Convert yield from tons to kilograms

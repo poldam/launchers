@@ -1,7 +1,10 @@
 <?php
-require_once('../libraries/lib.php'); // Replace with your actual database connection logic
-
+session_name('MISSILESv01');
+session_start();
+require_once('../libraries/lib.php'); 
 header('Content-Type: application/json');
+
+$google_id = $_SESSION['google_id'];
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -9,13 +12,14 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT 
-            airdefenses.id, 
+            airdefenses.id,
+            airdefenses.google_id, 
             airdefenses.name, 
             airdefenses.total, 
             airdefenses.success, 
             airdefenses.failure, 
             airdefenses.lat, 
-            airdefenses.lng, 
+            airdefenses.lng,
             airdefense_templates.model,
             airdefense_templates.id AS templateID, 
             airdefense_templates.country, 
@@ -30,10 +34,11 @@ try {
             airdefense_templates.description,
             airdefense_templates.isHypersonicCapable
         FROM airdefenses
-        JOIN airdefense_templates ON airdefenses.model = airdefense_templates.model
+        JOIN airdefense_templates ON airdefenses.model = airdefense_templates.model 
+		WHERE airdefenses.google_id = :google_id
         ORDER BY airdefense_templates.country DESC, airdefense_templates.name DESC
     ");
-    $stmt->execute();
+    $stmt->execute([':google_id' => $google_id]);
     $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode($airdefenses);

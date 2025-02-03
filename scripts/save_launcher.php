@@ -1,5 +1,6 @@
 <?php
-
+session_name('MISSILESv01');
+session_start();
 require_once("../libraries/lib.php");
 
 try {
@@ -9,7 +10,7 @@ try {
     $name = $_POST['name'];
     $lat = $_POST['lat'];
     $lng = $_POST['lng'];
-
+    $google_id = $_SESSION['google_id'];
     $description = '';
 
     if(!empty($_POST['template'])) {
@@ -37,8 +38,8 @@ try {
     } 
 
     // Insert a new launcher into the database
-    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description, templateID) 
-                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description, :templateID )');
+    $stmt = $pdo->prepare('INSERT INTO launchers (name, model, rocket_name, mass, area, speed, lat, lng, `range`, explosive_yield, overpressure, blast_radius, description, templateID, google_id) 
+                           VALUES (:name, :model, :rocket_name, :mass, :area, :speed, :lat, :lng, :range,:explosive_yield, :overpressure, :blast_radius, :description, :templateID, :google_id )');
     $stmt->execute([
         ':name' => $name,
         ':model' => $model,
@@ -53,7 +54,8 @@ try {
         ':blast_radius' => $blast_radius,
         ':range' => $range,
         ':description' => $description,
-        ':templateID' => $templateId
+        ':templateID' => $templateId,
+        ':google_id' => $google_id
     ]);
 
     echo json_encode(['success' => true]);
