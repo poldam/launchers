@@ -44,7 +44,7 @@ if (isset($_GET['code'])) {
         }
 
         // Redirect 
-        header("Location: ../index.php");
+        // header("Location: ../index.php");
         exit();
 
         

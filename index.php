@@ -41,9 +41,8 @@
         <script>
             // pass login_url to main.js
             window.loginUrl = "<?php echo htmlspecialchars($login_url); ?>";
+            console.log(window.loginUrl);
         </script>
-
-        </script> 
 
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -114,7 +113,6 @@
             </div>
         </div>
 
-        <!-- Delete confirmation modal -->
         <div class="modal fade" id="airdeleteModal" tabindex="-1" aria-labelledby="airdeleteModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -139,7 +137,6 @@
             <img src="images/info.png" alt="Info" width="40" height="40">
         </button>
 
-        <!-- Info modal -->
         <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -508,4 +505,5 @@
 
 
 </body>
+
 </html>
