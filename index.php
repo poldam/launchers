@@ -5,7 +5,13 @@
 
     if (!isset($_SESSION['google_id'])) {
         require_once('./auth/config.php');
-        $login_url = $client->createAuthUrl(); // Generate Google login URL
+        $login_url = "https://accounts.google.com/o/oauth2/auth?" . http_build_query([
+            "response_type" => "code",
+            "client_id" => $googleClientId,
+            "redirect_uri" => $googleRedirectUrl,
+            "scope" => $scope,
+            "access_type" => "offline"
+        ]); // Generate Google login URL
     }
 
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
