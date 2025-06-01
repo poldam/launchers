@@ -7,6 +7,7 @@ body {
     line-height: 1.6;
     background-color: #f4f7f6;
     color: #333;
+    overflow: hidden;
 }
 
 /* Buttons */
@@ -51,8 +52,8 @@ body {
 }
 
 #map {
-    height: 100%;
-    width: 100%;
+    width: 100svw; 
+    height: 100svh; 
     border-radius: 4px;
 }
 

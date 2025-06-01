@@ -3,10 +3,16 @@
     session_name('MISSILESv01');
     session_start();
 
-    // if (!isset($_SESSION['google_id'])) {
-    //     require_once('./auth/config.php');
-    //     $login_url = $client->createAuthUrl(); // Generate Google login URL
-    // }
+    if (!isset($_SESSION['google_id'])) {
+        require_once('./auth/config.php');
+        $login_url = "https://accounts.google.com/o/oauth2/auth?" . http_build_query([
+            "response_type" => "code",
+            "client_id" => $googleClientId,
+            "redirect_uri" => $googleRedirectUrl,
+            "scope" => $scope,
+            "access_type" => "offline"
+        ]); // Generate Google login URL
+    }
 
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 ?>
@@ -41,6 +47,7 @@
         <script>
             // pass login_url to main.js
             window.loginUrl = "<?php echo htmlspecialchars($login_url); ?>";
+            console.log(window.loginUrl);
         </script>
 
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
@@ -127,6 +134,42 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-danger" id="airconfirmDelete">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="blastSelectionModal" tabindex="-1" aria-labelledby="blastSelectionModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="launcherModalLabel">Select firing launcher</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="launcherData">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <input type="hidden" id="launcherId" name="launcherId">
+                                    <label for="blastLauncher">Select Launcher:</label>
+                                    <select id="blastLauncher" name="blastLauncher"  class="form-control">
+                                        <option value=""> -- Select Launcher -- </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <input type="hidden" id="lat" name="lat">
+                                        <input type="hidden" id="lng" name="lng">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveBlast">Select</button>
                     </div>
                 </div>
             </div>
