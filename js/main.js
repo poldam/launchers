@@ -46,6 +46,13 @@ var targetIcon = L.icon({
     iconSize: [20, 20]
 });
 
+var interceptionIcon = L.divIcon({
+    className: 'interception-icon',
+    html: '<i class="explosion">&#10041;</i>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 20]
+});
+
 var map = L.map('map', {zoomControl: false, minZoom: 2}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
 
 var osm = L.tileLayer ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -731,7 +738,8 @@ function addAirDefenseToMap(airDefense) {
         detectionCircle: detectionCircle,
         interceptionCircle: interceptionCircle,
         reactionTime: airDefense.reaction_time,
-        isHypersonicCapable: airDefense.isHypersonicCapable
+        isHypersonicCapable: airDefense.isHypersonicCapable,
+        numTrackedTargets: 0
     });
 
     var rating = ' - ';
@@ -792,48 +800,6 @@ function addAirDefenseToMap(airDefense) {
     });
 }
 
-// Simulate interception success based on multiple realistic factors
-function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, launcher) {
-    var randomFactor = Math.random();
-    
-    // Factor 1: Speed of the incoming missile vs air defense interception speed
-    const HYPERSONIC = 1715, SUPERSONIC = 412; // Launcher speeds in m/s
-    
-    var missileSpeedRatio = launcher.speed / airDefense.interceptionSpeed; // Ratio of missile speed to interception speed
-    var speedPenalty = 0.2 * (missileSpeedRatio - 1); // Gradual penalty for faster missiles
-    var speedFactor;
-    
-    if (launcher.speed >= HYPERSONIC) {
-        speedFactor = airDefense.isHypersonicCapable ? 1 - speedPenalty : 0.1; // Hypersonic missiles (e.g., Kinzhal) are nearly impossible to intercept unless countered by hypersonic systems
-    } else if (launcher.speed >= SUPERSONIC) {
-        speedFactor = 1 - speedPenalty; 
-    } else {
-        speedFactor = 1.0; // No penalty for slower missiles
-    }
-     
-    // Factor 2: Early detection bonus - higher success if detected early
-    var earlyDetectionBonus = (distanceToTarget < airDefense.interceptionRange * 0.7) ? 1.1 : 1.0; // 10% bonus for early detection
-
-    // Factor 3: Multiple targets - degrade effectiveness if multiple missiles are incoming
-    var targetOverloadFactor = (airDefense.numTrackedTargets > airDefense.maxSimultaneousTargets) ? 0.8 : 1.0; // Decrease if overloaded
-
-    // Factor 4: Environmental randomness - simulating interference or weather
-    var environmentFactor = 1 - (Math.random() * 0.05); // Small random degradation (e.g., jamming, fog)
-
-    // Factor 5: Hypersonic countermeasures
-    var hypersonicBonus = launcher.speed < HYPERSONIC && airDefense.isHypersonicCapable ? 1.2 : 1.0; // Boost if air defense can handle hypersonics
-
-    // Final accuracy is a combination of the system's base accuracy and modifiers
-    var modifiedAccuracy = airDefense.accuracy 
-        * speedFactor 
-        * earlyDetectionBonus 
-        * targetOverloadFactor 
-        * environmentFactor 
-        * hypersonicBonus;
-    
-    // Determine interception success
-    return randomFactor <= modifiedAccuracy && interceptionTime <= timeToImpact;
-}
 //////////////////////////////////////////////////////
 // BLASTS AND INTERCEPTIONS ////////////////////////
 //////////////////////////////////////////////////////
@@ -858,7 +824,7 @@ L.Control.simulateControl = L.Control.extend({
     `;
     div.onclick = function(e) {
         L.DomEvent.stopPropagation(e);
-        simulateBlasts();
+        simulation();
     };
     return div;
   }
@@ -874,6 +840,7 @@ map.on('contextmenu', function (e) {
     launchersInRange = getLaunchersInRange(launchers, targetLat, targetLng);
     const dropdown = $('#blastLauncher');
     dropdown.empty(); 
+
     $('<option value=""> -- Select Launcher -- </option>').appendTo(dropdown);
     launchersInRange.forEach(launcher => {
         $('<option></option>') 
@@ -881,16 +848,19 @@ map.on('contextmenu', function (e) {
             .text(launcher.name) 
             .appendTo(dropdown)
     });
+
     $('#lat').val(targetLat);
     $('#lng').val(targetLng);
-    
     $('#blastSelectionModal').modal('show');
 });
 
-$('#saveBlast').click(function () {
+var tid = 0; // id of target
+$('#saveBlast').click(function () {  
     var selectedLauncherId = $('#blastLauncher').val();
+    //var launcher = launchers.find(launcher => launcher.id === parseInt(selectedLauncherId))
     var lat = $('#lat').val();
     var lng = $('#lng').val();
+    var launchTime = $('#launchTime').val();
 
     if (!selectedLauncherId) {
         alert("Please select a launcher.");
@@ -898,23 +868,60 @@ $('#saveBlast').click(function () {
     }
 
     targets.push({
+        id : tid,
         launcherId: parseInt(selectedLauncherId),
-        lat: lat,
-        lng: lng,
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        launchTime: parseInt(launchTime),  // in seconds
     });
+    tid++;
+
     var target = targets.slice(-1)[0];
     addTargetToMap(target);
     
     $('#blastSelectionModal').modal('hide');
 });
 
+
 function addTargetToMap(target){
-   var marker = L.marker([target.lat, target.lng], { draggable: false, icon: targetIcon }).addTo(targetLayer);
-   var launcherName = launchers.find(launcher => launcher.id === target.launcherId).name
+   var marker = L.marker([target.lat, target.lng], { draggable: true, icon: targetIcon }).addTo(targetLayer);
+   var launcher = launchers.find(launcher => launcher.id === target.launcherId)
+   launcherId = launcher.id;
+   var launcherName = launcher.name;
    marker.bindTooltip(
-        `Launcher : ${launcherName}`, {
+    `Launcher: ${launcherName}<br>
+    Launch Time(s): ${target.launchTime.toFixed(2)}`, 
+    {
         permanent: false, 
-        direction: "top"});
+        direction: "top"
+    }
+    );
+
+    // update target position on drag
+    marker.on('dragend', function (e) {
+        const newPos = e.target.getLatLng();
+
+        const originalTarget = targets.find(t => t.id === target.id);
+        
+        if (originalTarget) {
+            if(launcher.range >= map.distance([launcher.lat, launcher.lng], [newPos.lat, newPos.lng])){
+                originalTarget.lat = newPos.lat;
+                originalTarget.lng = newPos.lng;
+            }else{ 
+                targets.pop(target); //if out of range remove it
+                map.removeLayer(marker);
+            }
+            //console.log(`Target ${originalTarget.id} moved to:`, newPos);
+        }
+    });
+
+    // remove target on right click
+    marker.on('contextmenu', function (e) {
+        map.removeLayer(marker);
+        const index = targets.findIndex(t => t.id === target.id);
+        if (index !== -1) targets.splice(index, 1);
+    });
+
 }
 
 function getLaunchersInRange(launchers, targetLat, targetLng){
@@ -933,13 +940,20 @@ function getLaunchersInRange(launchers, targetLat, targetLng){
 function updateLauncherTargets(launcherid){
     var launcher = launchers.find(l => l.id === launcherid);
     flag = false; // launcher too far from target
-    for(var i=0; i<targets.length; i++){
-        if(targets[i].launcherId == launcherid){
-            //remove target if not in range of its launcher
-            if(launcher.range <= map.distance([launcher.lat, launcher.lng],[targets[i].lat,targets[i].lng])){
-                targets.splice(i);
+    for (var i = targets.length - 1; i >= 0; i--) {
+        if (targets[i].launcherId === launcherid) {
+            const distance = map.distance([launcher.lat, launcher.lng], [targets[i].lat, targets[i].lng]);
+
+            if (launcher.range <= distance) {
+                targets.splice(i, 1); 
                 flag = true;
-            }            
+            } else {
+                targets[i].timeToImpact = calculateTimeToImpact(
+                    launcher.lat, launcher.lng,
+                    targets[i].lat, targets[i].lng,
+                    launcher.speed
+                );
+            }
         }
     }
     if(flag)
@@ -953,161 +967,62 @@ function loadTargets(){
     });
 }
 
-
-function simulateBlasts(){
-    targetLayer.clearLayers();
-     
-    for (let i = 0; i < targets.length; i++) {
-        var currentBlast = targets[i];       
-        var currentLauncher = launchers[launchers.findIndex(launcher => launcher.id === currentBlast.launcherId)];       
-        var targetLat = currentBlast.lat;
-        var targetLng = currentBlast.lng;
-       
-        // Create the blast
-        var blastColor = currentLauncher.color;
-        var blastCircle = L.circle([targetLat, targetLng], {
-            radius: currentLauncher.blastRadius,
-            color: blastColor,
-            fillColor: 'orange',
-            fillOpacity: 1,
-            weight: 6
-        });
-
-        // Store potential interceptors
-        var interceptors = [];
-
-        // Check which air defenses can intercept the blast (based on interception range)
-        airDefenses.forEach(function (airDefense) {
-            var distanceToTarget = map.distance([airDefense.lat, airDefense.lng], [targetLat, targetLng]);
-
-            // Log all air defenses that detect the incoming missile (based on detection range)
-            if (distanceToTarget <= airDefense.detectionRange) {
-                console.log(`${airDefense.name} detected the incoming missile!`);
-
-                // TODO: Store detected air defenses if needed for further analysis
-                detectedAirDefenses.push(airDefense);
-            }
-
-            if (distanceToTarget <= airDefense.interceptionRange) {
-                // Calculate interception time and store in interceptors array
-                var interceptionTime = calculateInterceptionTime(airDefense, targetLat, targetLng);
-                interceptors.push({ airDefense: airDefense, interceptionTime: interceptionTime });
-            }
-        });
-
-        if (interceptors.length > 0) {
-            // Sort interceptors by fastest interception time
-            interceptors.sort(function (a, b) {
-                return a.interceptionTime - b.interceptionTime;
-            });
-
-            // Try interception by the fastest air defenses in order
-            let INTERCEPTED = false;
-            for (let i = 0; i < interceptors.length && !INTERCEPTED; i++) {
-                let interceptor = interceptors[i];
-                let airDefense = interceptor.airDefense;
-                let interceptionTime = interceptor.interceptionTime;
-
-                // Calculate time to impact (launcher missile)
-                var timeToImpact = calculateTimeToImpact(currentLauncher.lat, currentLauncher.lng, targetLat, targetLng, currentLauncher.speed);
-
-                // console.log(`Time to Impact: ${timeToImpact} seconds`);
-                // console.log(`Interception Time: ${interceptionTime} seconds`);
-
-                // Early detection bonus (reduce reaction time)
-                var distanceToTarget = map.distance([airDefense.lat, airDefense.lng], [targetLat, targetLng]);
-                if (distanceToTarget < airDefense.interceptionRange * 0.7) {
-                    interceptionTime *= 0.9; // 10% bonus for faster reaction
-                    console.log(`${airDefense.name} received an early detection bonus!`);
-                }
-
-                if(!defenseStatistics[airDefense]) {
-                    defenseStatistics[airDefense] = [];
-                    defenseStatistics[airDefense]['total'] = 0;
-                    defenseStatistics[airDefense]['success'] = 0;
-                    defenseStatistics[airDefense]['failure'] = 0; 
-                }
-
-                $.post('./scripts/airdefense_statistics.php', { id: airDefense.id, 'field': 'total' }, function() { });
-
-                // Determine interception success based on accuracy
-                var randomFactor = determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, currentLauncher);
-                if (randomFactor && interceptionTime <= timeToImpact) {
-                    // Successful interception
-                    console.log(`${airDefense.name} intercepted the missile!`);
-                    defenseStatistics[airDefense]['success']++;
-
-                    $.post('./scripts/airdefense_statistics.php', { id: airDefense.id, 'field': 'success' }, function() { });
-
-                    // Calculate the interception point (based on interception speed and interception time)
-                    var interceptionPoint = calculateInterceptionPoint(currentLauncher.lat, currentLauncher.lng, targetLat, targetLng, interceptionTime, timeToImpact, airDefense);
-
-                    // Visual feedback: missile trail and interception marker
-                    var missileTrail = L.polyline([[airDefense.lat, airDefense.lng], interceptionPoint], {
-                        color: 'gray',
-                        weight: 2,
-                        dashArray: '5, 10'
-                    }).addTo(map);
-
-                    var interceptionIcon = L.divIcon({
-                        className: 'interception-icon',
-                        html: '<i class="explosion">&#10041;</i>',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 20]
-                    });
-                    var interceptionMarker = L.marker(interceptionPoint, { icon: interceptionIcon }).addTo(map);
-
-                    interceptionMarker.bindTooltip(`
-                        <b>${airDefense.name}</b> intercepted the rocket!<br>
-                        Time to Impact: ${timeToImpact.toFixed(2)} sec<br>
-                        Interception Time: ${interceptionTime.toFixed(2)} sec
-                    `, {
-                        permanent: false,
-                        direction: 'top',
-                        offset: [0, -20]
-                    });
-
-                    INTERCEPTED = true;
-                }
-
-                if (!randomFactor) {
-                    console.log(`${airDefense.name} FAILED to intercept the missile!`);
-                    $.post('./scripts/airdefense_statistics.php', { id: airDefense.id, 'field': 'failure' }, function() { });
-                }
-
-            }
-
-            if (!INTERCEPTED) {
-                blastCircle.addTo(blastLayer);
-
-                blastCircle.bindTooltip(`
-                    <b>${currentLauncher.name}</b><br>
-                    Model: ${currentLauncher.model}<br>
-                    Blast Radius: ${parseFloat(currentLauncher.blastRadius).toFixed(2)} m
-                `, {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -20]
-                });
-            }
-        } else {
-            blastCircle.addTo(blastLayer);
-            blastCircle.bindTooltip(`
-                <b>${currentLauncher.name}</b><br>
-                Model: ${currentLauncher.model}<br>
-                Blast Radius: ${parseFloat(currentLauncher.blastRadius).toFixed(2)} m
-            `, {
-                permanent: false,
-                direction: 'top',
-                offset: [0, -20]
-            });
-        }    
+function updateTrackedTargets(targets, airdefense, time){
+    for(const target of targets){
+        if(target.launchTime <= time && target.timeToImpact > time && targetInRange(target, airdefense))
+            airdefense.numTrackedTargets++;
     }
-    targets = [];
+    console.log(airdefense.numTrackedTargets);
 }
 
+function targetInRange(target, airdefense){
+    return map.distance([airdefense.lat, airdefense.lng], [target.lat, target.lng]) <= airdefense.interceptionRange;
+}
 
+// Simulate interception success based on multiple realistic factors
+function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, launcher) {
+    var randomFactor = Math.random();
+    
+    // Factor 1: Speed of the incoming missile vs air defense interception speed
+    const HYPERSONIC = 1715, SUPERSONIC = 412; // Launcher speeds in m/s
+    
+    var missileSpeedRatio = launcher.speed / airDefense.interceptionSpeed; // Ratio of missile speed to interception speed
+    var speedPenalty = 0.2 * (missileSpeedRatio - 1); // Gradual penalty for faster missiles
+    var speedFactor;
+    
+    if (launcher.speed >= HYPERSONIC) {
+        speedFactor = airDefense.isHypersonicCapable ? 1 - speedPenalty : 0.1; // Hypersonic missiles (e.g., Kinzhal) are nearly impossible to intercept unless countered by hypersonic systems
+    } else if (launcher.speed >= SUPERSONIC) {
+        speedFactor = 1 - speedPenalty; 
+    } else {
+        speedFactor = 1.0; // No penalty for slower missiles
+    }
+     
+    // Factor 2: Early detection bonus - higher success if detected early
+    var earlyDetectionBonus = (distanceToTarget < airDefense.interceptionRange * 0.7) ? 1.1 : 1.0; // 10% bonus for early detection
 
+    // Factor 3: Multiple targets - degrade effectiveness if multiple missiles are incoming
+    var targetOverloadFactor = airDefense.numTrackedTargets > airDefense.maxSimultaneousTargets
+    ? 0.8 * Math.exp(-(airDefense.numTrackedTargets - airDefense.maxSimultaneousTargets) / 5)  
+    : 1.0; // decreases exponentially as the number of targets rises
+
+    // Factor 4: Environmental randomness - simulating interference or weather
+    var environmentFactor = 1 - (Math.random() * 0.05); // Small random degradation (e.g., jamming, fog)
+
+    // Factor 5: Hypersonic countermeasures
+    var hypersonicBonus = launcher.speed < HYPERSONIC && airDefense.isHypersonicCapable ? 1.2 : 1.0; // Boost if air defense can handle hypersonics
+
+    // Final accuracy is a combination of the system's base accuracy and modifiers
+    var modifiedAccuracy = airDefense.accuracy 
+        * speedFactor 
+        * earlyDetectionBonus 
+        * targetOverloadFactor 
+        * environmentFactor 
+        * hypersonicBonus;
+    
+    // Determine interception success
+    return randomFactor <= modifiedAccuracy && interceptionTime <= timeToImpact;
+}
 
 function calculateInterceptionPoint(launcherLat, launcherLng, targetLat, targetLng, interceptionTime, timeToImpact, airDefense) {
     var totalDistance = map.distance([launcherLat, launcherLng], [targetLat, targetLng]);  
@@ -1160,6 +1075,154 @@ function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     return reactionTime + (distance / interceptionSpeed);  // Total interception time = reaction time + travel time
 }
 
+function simulation() {
+    if (targets.length === 0) return;
+  
+    // reset layers & stats
+    //targetLayer.clearLayers();
+    //blastLayer.clearLayers();
+    
+    // sort by launchTime ascending
+    targets.sort((a, b) => a.launchTime - b.launchTime);
+  
+    // track time
+    let simTime = 0;
+  
+    // process each blast at its scheduled launchTime
+    for (const target of targets) {
+      simTime = target.launchTime;
+      simTarget(target, simTime);
+    }
+    
+    // reset tracked targets
+    for (const airdefense of detectedAirDefenses) 
+        airdefense.numTrackedTargets = 0 
+      
+
+    // clear the targets array
+    //targets = [];
+  }
+  
+function simTarget(target, time) {
+    const launcher = launchers.find(l => l.id === target.launcherId);
+    const lat = parseFloat(target.lat), lng = parseFloat(target.lng);
+
+    
+
+
+    console.log(`\n time=${time.toFixed(2)}s: launching ${launcher.name}, at [${lat.toFixed(2)},${lng.toFixed(2)}]`);
+
+    detectedAirDefenses = [];
+    // collect possible interceptors
+    let interceptors = [];
+    let intercepted = false;
+
+    airDefenses.forEach(airdefense => {
+        const dist = map.distance([airdefense.lat, airdefense.lng], [lat, lng]);
+
+        if (dist <= airdefense.detectionRange) {
+            console.log(`${airdefense.name} detected incoming missile`);
+            detectedAirDefenses.push(airdefense);
+        }
+        if (dist <= airdefense.interceptionRange) {
+            let interceptionTime = calculateInterceptionTime(airdefense, lat, lng) + time;
+            interceptors.push({ airdefense: airdefense, interceptionTime: interceptionTime });
+        }
+    });
+    
+    if (interceptors.length > 0) {
+        interceptors.sort((x, y) => x.interceptionTime - y.interceptionTime);
+
+        // Try intercepting with each airdefense
+        for (let i = 0; i < interceptors.length && !intercepted; i++) {
+            let interceptor = interceptors[i];
+            let interceptionTime = interceptor.interceptionTime;
+
+            let airdefense = interceptor.airdefense; // intercepting airdefense
+            var timeToImpact = calculateTimeToImpact(launcher.lat, launcher.lng, lat, lng, launcher.speed) + time; // Calculate time to impact (launcher missile)
+            
+            // get number of targets tracked according to time.
+            updateTrackedTargets(targets, airdefense, time); // tracks only if inside interception range
+
+            var distanceToTarget = map.distance([parseFloat(airdefense.lat), parseFloat(airdefense.lng)], [lat, lng]);
+            
+            console.log(`Time to Impact: ${timeToImpact.toFixed(2)} seconds`);
+            console.log(`Interception Time: ${interceptionTime.toFixed(2)} seconds`);
+
+            if(!defenseStatistics[airdefense]) {
+                defenseStatistics[airdefense] = [];
+                defenseStatistics[airdefense]['total'] = 0;
+                defenseStatistics[airdefense]['success'] = 0;
+                defenseStatistics[airdefense]['failure'] = 0; 
+            }
+            $.post('./scripts/airdefense_statistics.php', { id: airdefense.id, 'field': 'total' }, function() { });
+
+            // Determine interception success based on accuracy
+            var success = determineInterceptionSuccess(airdefense, timeToImpact, interceptionTime, distanceToTarget, launcher);
+
+            // Successful interception
+            if(success){   
+                console.log(`${airdefense.name} intercepted the missile!`);
+                
+                defenseStatistics[airdefense]['success']++;
+                $.post('./scripts/airdefense_statistics.php', { id: airdefense.id, 'field': 'success' }, function() { });
+
+                //Calculate the interception point (based on interception speed and interception time)
+                var interceptionPoint = calculateInterceptionPoint(launcher.lat, launcher.lng, lat, lng, interceptionTime, timeToImpact, airdefense);
+                var missileTrail = L.polyline([[airdefense.lat, airdefense.lng], interceptionPoint], {
+                    color: 'gray',
+                    weight: 2,
+                    dashArray: '5, 10'
+                }).addTo(map);
+                var interceptionMarker = L.marker(interceptionPoint, { icon: interceptionIcon }).addTo(map);
+                interceptionMarker.bindTooltip(`
+                    <b>${airdefense.name}</b> intercepted the rocket!<br>
+                    Time to Impact: ${timeToImpact.toFixed(2)} sec<br>
+                    Interception Time: ${interceptionTime.toFixed(2)} sec
+                `, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -20]
+                });
+
+                intercepted = true;
+            }
+
+            if (!success) {
+                console.log(`${airdefense.name} FAILED to intercept the missile!`);
+                $.post('./scripts/airdefense_statistics.php', { id: airdefense.id, 'field': 'failure' }, function() { });
+            }
+
+        }
+    }
+    
+    // create the blast circle`
+    if (!intercepted) {     
+        var blastCircle = L.circle([lat, lng], {
+            radius: launcher.blastRadius,
+            color: launcher.color,
+            fillColor: 'orange',
+            fillOpacity: 1,
+            weight: 6
+        }).addTo(blastLayer).bindTooltip
+        (
+            `<b>${launcher.name}</b><br>
+            Model: ${launcher.model}<br>
+            Blast Radius: ${parseFloat(launcher.blastRadius).toFixed(2)} m`, 
+        {
+            permanent: false,
+            direction: 'top',
+            offset: [0, -20]
+        });
+    }
+
+    for(let i = 0; i < interceptors.length; i++){
+        interceptors[i].airdefense.numTrackedTargets = 0;
+    }
+        
+
+}
+  
 L.control.layers(null, {
     'Launchers & Ranges': launcherLayer,
     'Blasts': blastLayer,

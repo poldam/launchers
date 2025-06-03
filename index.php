@@ -13,7 +13,7 @@
             "access_type" => "offline"
         ]); // Generate Google login URL
     }
-
+    //$_SESSION['loggedin'] = 1;
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
 ?>
 
@@ -150,20 +150,20 @@
                     </div>
                     <div class="modal-body">
                         <form id="launcherData">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <input type="hidden" id="launcherId" name="launcherId">
-                                    <label for="blastLauncher">Select Launcher:</label>
-                                    <select id="blastLauncher" name="blastLauncher"  class="form-control">
-                                        <option value=""> -- Select Launcher -- </option>
-                                    </select>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <input type="hidden" id="lat" name="lat">
-                                        <input type="hidden" id="lng" name="lng">
-                                    </div>
-                                </div>
+                            <input type="hidden" id="launcherId" name="launcherId">
+                            <input type="hidden" id="lat" name="lat">
+                            <input type="hidden" id="lng" name="lng">
+
+                            <div class="form-group mb-3">
+                                <label for="blastLauncher">Select Launcher:</label>
+                                <select id="blastLauncher" name="blastLauncher" class="form-control">
+                                    <option value=""> -- Select Launcher -- </option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="launchTime">Launch Time (seconds):</label>
+                                <input type="number" class="form-control" id="launchTime" name="launchTime" min="0" value="0" step="any"  placeholder="Enter launch time in seconds">
                             </div>
                         </form>
                     </div>
@@ -174,6 +174,7 @@
                 </div>
             </div>
         </div>
+
 
         <button type="button" id="info-btn" class="btn" onclick="$('#infoModal').modal('show')">
             <img src="images/info.png" alt="Info" width="40" height="40">
