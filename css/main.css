@@ -69,6 +69,25 @@ body {
     cursor: pointer;
 }
 
+/* maps control */
+.maps-control .leaflet-control-layers-toggle {
+    background-image: none !important;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.maps-control .leaflet-control-layers-toggle::before {
+    content: "\f278"; 
+    font-family: "Font Awesome 6 Free";
+    color: #000000;
+}
+.maps-control.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+    display: none;
+}
+
 .orange {
     color: orange;
 }

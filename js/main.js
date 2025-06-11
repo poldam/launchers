@@ -25,27 +25,38 @@ $(document).ready(function() {
     });
 });
 
-// custom launcher icon
+// Initialize the map and markers
+var map = L.map('map', {zoomControl: false, minZoom: 2}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
+
+// Track clicked position
+var clickedLat = null;
+var clickedLng = null;
+
+map.on('click', function(e) {
+    clickedLat = e.latlng.lat;
+    clickedLng = e.latlng.lng;
+
+    // Open the selection modal
+    $('#selectionModal').modal('show');
+});
+
+// marker icons
 var launcherIcon = L.icon({
     iconUrl: './images/launcher-icon.png', 
     iconSize: [38, 38], 
     iconAnchor: [19, 38], 
     popupAnchor: [0, -40] 
 });
-
-// custom airdefense icon
 var defenceIcon = L.icon({
     iconUrl: './images/airdefense-icon.png', 
     iconSize: [38, 38], 
     iconAnchor: [19, 38], 
     popupAnchor: [0, -40] 
 });
-
 var targetIcon = L.icon({
     iconUrl: './images/target-icon.png',
     iconSize: [20, 20]
 });
-
 var interceptionIcon = L.divIcon({
     className: 'interception-icon',
     html: '<i class="explosion">&#10041;</i>',
@@ -53,435 +64,14 @@ var interceptionIcon = L.divIcon({
     iconAnchor: [10, 20]
 });
 
-var map = L.map('map', {zoomControl: false, minZoom: 2}).setView([37.9838, 23.7275], 4); // Εστίαση στην Αθήνα
+// Create separate layers for launchers, range circles, targets, blasts and interceptions
+var launcherLayer = L.layerGroup().addTo(map);
+var blastLayer = L.layerGroup().addTo(map);
+var interceptionLayer = L.layerGroup().addTo(map);
+var airDefenseLayer = L.layerGroup().addTo(map); 
+var targetLayer = L.layerGroup().addTo(map);
 
-var osm = L.tileLayer ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: ''
-}).addTo (map);
-
-// Streets
-googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3']
-});
-
-// Hybrid:
-googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3']
-});
-
-// Satellite:
-googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3']
-});
-
-// Terrain
-googleTerrain = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3']
-});
-
-var cartoDBPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '',
-    subdomains: 'abcd',
-    maxZoom: 19
-});
-
-var cartoDBDarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '',
-    subdomains: 'abcd',
-    maxZoom: 19
-});
-
-var powerGridLayer = L.tileLayer('https://tiles.openinframap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: ''
-})
-
-var flosmPowerGridLayer = L.tileLayer('https://{s}.flosm.de/power/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: ''
-})
-
-var osmPowerLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: ''
-})
-
-var baseMaps = {
-    "OSM": osm,
-    "Streets": googleStreets,
-    "Satelite": googleSat,
-    "Hybrid": googleHybrid,
-    "Terain": googleTerrain,
-    "Bright": cartoDBPositron,
-    "Dark Matter": cartoDBDarkMatter
-};
-
-L.control.layers(baseMaps, null, { position: 'topright', collapsed: false }).addTo(map);
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-//// NUCLEAR SITES
-const nuclearFactoriesLayer = L.layerGroup();
-const nuclearIcon = L.divIcon({
-    html: '<i class="nuclear-icon">&#9762;</i>',
-    className: 'nuclear-icon',
-    iconSize: [45, 45], // Size of the icon
-    iconAnchor: [12, 12] // Anchor point of the icon
-});
-// Load the JSON data
-// https://github.com/cristianst85/GeoNuclearData/blob/master/data/json/raw/4-nuclear_power_plants.json
-fetch('./assets/nuclear.json')
-    .then(response => response.json())
-    .then(data => {
-        data.forEach(plant => {
-            const { Name, Latitude, Longitude, ReactorModel, OperationalFrom, OperationalTo, Capacity } = plant;
-            
-            if((OperationalTo === null || OperationalTo === "") && Latitude && Longitude) {
-                const marker = L.marker([Latitude, Longitude],{ icon: nuclearIcon });
-
-                marker.bindPopup(`
-                    <b>${Name}</b><br>
-                    Reactor Model: ${ReactorModel || "N/A"}<br>
-                    Operational From: ${OperationalFrom || "N/A"}<br>
-                    Capacity: ${Capacity || "N/A"} MW
-                `);
-
-                nuclearFactoriesLayer.addLayer(marker);
-            }
-        });
-    })
-    .catch(error => console.error('Error loading nuclear JSON data:', error));
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-// Define the war areas array
-var ukraineWar = L.layerGroup() //.addTo(map);
-
-const warareas = [
-    // regions
-    ['donetsk', '#555555'],
-    ['lugansk', '#555555'],
-    ['zaporizhia', '#555555'],
-    ['cherson', '#555555'],
-    ['krim', '#555555'],
-    ['transnistria', '#555555']
-];
-
-// Loop through each area and fetch its GeoJSON file
-warareas.forEach(area => {
-    const city = area[0];
-    const cityColor = area[1];
-
-    // Fetch GeoJSON data for the city
-    fetch(`./assets/warcities/${city}.geo.json`)
-        .then(response => response.json())
-        .then(json => {
-            // Create a Leaflet GeoJSON layer
-            const region = L.geoJson(json, {
-                style: {
-                    fillColor: cityColor,
-                    fillOpacity: 0.1,
-                    weight: 1,
-                    color: '#000' // Optional: Outline color
-                }
-            });
-            // Add the layer to the map
-            region.addTo(ukraineWar);
-        })
-        .catch(error => console.error(`Error fetching GeoJSON for ${city}:`, error));
-});
-
-////////// BRICS //////////
-var brics = L.layerGroup() //.addTo(map); // Initialize the layer group and add it to the map
-var g7 = L.layerGroup()
-var g20 = L.layerGroup()
-var nato = L.layerGroup()
-var shangai = L.layerGroup()
-var ww2axis = L.layerGroup()
-var ww2allies = L.layerGroup()
-var fiveeyes = L.layerGroup()
-var eu = L.layerGroup()
-var eok = L.layerGroup()
-var myjson = null;
-
-// Fetch the GeoJSON data for countries
-fetch("./assets/countries.geo.json")
-    .then(response => response.json())
-    .then(json => {
-        myjson = json; // Store the GeoJSON data
-
-        // Function to add countries to the layer group
-        function addCountriesToLayerGroup(countries, fillcolor, actualLayer) {
-            countries.forEach(countryName => {
-                json.features.forEach(feature => {
-                    if (feature.properties.name === countryName) {
-                        // Create a GeoJSON layer for the matching country
-                        const country = L.geoJson(feature, {
-                            style: {
-                                fillColor: fillcolor,
-                                fillOpacity: 0.2, // Adjust transparency as needed
-                                weight: 1,
-                                color: '#000' // Optional: Outline color
-                            }
-                        });
-
-                        // Add the country layer to the layer group
-                        actualLayer.addLayer(country);
-                    }
-                });
-            });
-        }
-
-        // Add BRICS countries
-        addCountriesToLayerGroup(
-            ['China', 'Russia', 'Brazil', 'South Africa', 'India'],
-            '#008f00', brics
-        );
-
-        // Add BRICS+ countries
-        addCountriesToLayerGroup(
-            ['Iran', 'Ethiopia', 'Saudi Arabia', 'United Arab Emirates', 'Egypt'],
-            '#adff2f', brics
-        );
-
-        // Add G7 countries
-        addCountriesToLayerGroup(
-            ['United States of America', 'Canada', 'Germany', 'Japan', 'United Kingdom', 'Italy', 'France'],
-            '#ff0000', g7
-        );
-
-        // UkraineWar
-        addCountriesToLayerGroup(
-            ['Russia'],
-            '#0000FF', ukraineWar
-        );
-
-        addCountriesToLayerGroup(
-            ['Ukraine'],
-            '#FFFF00', ukraineWar
-        );
-
-        addCountriesToLayerGroup(
-            ['Finland','Georgia','Moldova','Estonia','Latvia','Lithuania'],
-            '#555555', ukraineWar
-        );
-
-        addCountriesToLayerGroup(
-            ['Belarus'],
-            '#87CEEB', ukraineWar
-        );
-
-        addCountriesToLayerGroup(
-            ['Australia','Canada','Saudi Arabia','United States of America','India','Russia','South Africa','Turkey','Argentina','Brazil','Mexico','France','Germany','Italy','United Kingdom','China','Indonesia','Japan','South Korea'],
-            '#FFD700', g20
-        );
-
-        const natoCountries = [
-            "Albania",
-            "Belgium",
-            "Bulgaria",
-            "Canada",
-            "Croatia",
-            "Czech Republic",
-            "Denmark",
-            "Estonia",
-            "Finland",
-            "France",
-            "Germany",
-            "Greece",
-            "Hungary",
-            "Iceland",
-            "Italy",
-            "Latvia",
-            "Lithuania",
-            "Luxembourg",
-            "Montenegro",
-            "Netherlands",
-            "Macedonia",
-            "Norway",
-            "Poland",
-            "Portugal",
-            "Romania",
-            "Slovakia",
-            "Slovenia",
-            "Spain",
-            "Sweden",
-            "Turkey",
-            "United Kingdom",
-            "United States of America"
-        ];
-
-        addCountriesToLayerGroup(
-            natoCountries,
-            '#004990', nato
-        );
-
-        const scoMemberStates = [
-            "Belarus",
-            "China",
-            "India",
-            "Iran",
-            "Kazakhstan",
-            "Kyrgyzstan",
-            "Pakistan",
-            "Russia",
-            "Tajikistan",
-            "Uzbekistan"
-        ];
-
-        addCountriesToLayerGroup(
-            scoMemberStates,
-            '#C1E4D0', shangai
-        );
-
-        const axisPowers = [
-            "Germany",
-            "Italy",
-            "Japan",
-            "Hungary",
-            "Romania",
-            "Bulgaria",
-            "Slovakia",
-            "Croatia",
-            "Finland"
-        ];
-          
-        addCountriesToLayerGroup(
-            axisPowers,
-            '#ff0000', ww2axis
-        );
-
-        const fiveEyesCountries = [
-            "Australia",
-            "Canada",
-            "New Zealand",
-            "United Kingdom",
-            "United States of America"
-        ];
-
-        addCountriesToLayerGroup(
-            fiveEyesCountries,
-            '#0033A0', fiveeyes
-        );
-        
-        const alliedPowers = [
-            "United States of America",
-            "Armenia",
-            "Azerbaijan",
-            "Belarus",
-            "Estonia",
-            "Georgia",
-            "Kazakhstan",
-            "Kyrgyzstan",
-            "Latvia",
-            "Lithuania",
-            "Moldova",
-            "Russia",
-            "Tajikistan",
-            "Turkmenistan",
-            "Ukraine",
-            "Uzbekistan",
-            "United Kingdom",
-            "China",
-            "France",
-            "Poland",
-            "Canada",
-            "Australia",
-            "New Zealand",
-            "India",
-            "South Africa",
-            "Belgium",
-            "Norway",
-            "Netherlands",
-            "Greece",
-            "Czech Republic",
-            "Bosnia and Herzegovina",
-            "Croatia",
-            "North Macedonia",
-            "Montenegro",
-            "Serbia",
-            "Slovenia",
-            "Kosovo",
-            "Brazil"
-        ];
-
-        addCountriesToLayerGroup(
-            alliedPowers,
-            '#012169', ww2allies
-        );
-
-        const euCountries = [
-            "Austria",
-            "Belgium",
-            "Bulgaria",
-            "Croatia",
-            "Cyprus",
-            "Czech Republic",
-            "Denmark",
-            "Estonia",
-            "Finland",
-            "France",
-            "Germany",
-            "Greece",
-            "Hungary",
-            "Ireland",
-            "Italy",
-            "Latvia",
-            "Lithuania",
-            "Luxembourg",
-            "Malta",
-            "Netherlands",
-            "Poland",
-            "Portugal",
-            "Romania",
-            "Slovakia",
-            "Slovenia",
-            "Spain",
-            "Sweden"
-        ];
-
-        addCountriesToLayerGroup(
-            euCountries,
-            '#0034A0', eu
-        );
-
-        const eurozoneCountries = [
-            "Austria",
-            "Belgium",
-            "Croatia",
-            "Cyprus",
-            "Estonia",
-            "Finland",
-            "France",
-            "Germany",
-            "Greece",
-            "Ireland",
-            "Italy",
-            "Latvia",
-            "Lithuania",
-            "Luxembourg",
-            "Malta",
-            "Netherlands",
-            "Portugal",
-            "Slovakia",
-            "Slovenia",
-            "Spain"
-        ];
-
-        addCountriesToLayerGroup(
-            eurozoneCountries,
-            '#0047A0', eok
-        );
-          
-    })
-    .catch(error => console.error("Error fetching or processing GeoJSON data:", error));
-
-//////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
+var countryGroups = {};
 
 var selectedLauncherId = null;
 var currentMarker = null;
@@ -490,37 +80,7 @@ var rangeCircle = null;
 var userMarker = null; // Store the user location marker
 var userCircle = null; // Store the user location circle
 
-// Load all stored launchers
-function loadLaunchers() {
-    $.ajax({
-        url: './scripts/get_launchers.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            data.forEach(function(launcher) {
-                addLauncherToMap(launcher);
-            });
-        }
-    }); 
-}
-
-function loadAirDefenses() {
-    $.ajax({
-        url: './scripts/get_airdefenses.php', // Fetch air defenses from the server
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            data.forEach(function(airDefense) {
-                addAirDefenseToMap(airDefense); // Add each air defense to the map
-            });
-        },
-        error: function(xhr, status, error) {
-            console.error("Error fetching air defenses:", error);
-        }
-    });
-}
-
-///////////////////////////////
+/////////////////////////////
 // Google Login Button//////
 ///////////////////////////
 L.Control.LoginControl = L.Control.extend({
@@ -543,9 +103,9 @@ L.control.LoginControl = function(opts) {
     return new L.Control.LoginControl(opts);
 }
 
-///////////////////////////////////////////
-// FIND MY LOCATION ///////////////////////
-// Add custom button for finding location
+////////////////////////////////
+// FIND MY LOCATION ///////////
+//////////////////////////////
 L.Control.LocateControl = L.Control.extend({
     onAdd: function() {
         var div = L.DomUtil.create('div', 'leaflet-control-locate');
@@ -588,17 +148,30 @@ function findMyLocation() {
     });
 }
 
+////////////////////////////////
+// Simulate Button ///////////
+//////////////////////////////
+L.Control.simulateControl = L.Control.extend({
+    onAdd: function () {
+    var div = L.DomUtil.create('div', 'simulate-btn');
+    div.innerHTML = `
+      <button class="btn btn-danger mb-0">
+        <span><strong>Simulate!</strong></span>
+      </button>
+    `;
+    div.onclick = function(e) {
+        L.DomEvent.stopPropagation(e);
+        simulation();
+    };
+    return div;
+  }
+});
+L.control.simulateControl = function(opts) {
+    return new L.Control.simulateControl(opts);
+}
+
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-
-// Create separate layers for launchers, range circles, and blasts
-var launcherLayer = L.layerGroup().addTo(map);
-var blastLayer = L.layerGroup().addTo(map);
-// Initialize the air defense layer
-var airDefenseLayer = L.layerGroup().addTo(map); // Add the air defense layer to the map
-// Seperate layer for the scheduled blasts
-var targetLayer = L.layerGroup().addTo(map);
-
 
 // Array to store launcher data
 var launchers = [];
@@ -607,14 +180,34 @@ var detectedAirDefenses = [];
 var defenseStatistics = [];
 var targets = [];
 
-function getAggressiveColor() {
-    // Generate random aggressive colors with more emphasis on red and dark tones
-    let r = Math.floor(Math.random() * 156 + 100); // Red channel - higher intensity
-    let g = Math.floor(Math.random() * 100); // Green channel - low to medium intensity
-    let b = Math.floor(Math.random() * 100); // Blue channel - low to medium intensity
+// Load all stored launchers
+function loadLaunchers() {
+    $.ajax({
+        url: './scripts/get_launchers.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            data.forEach(function(launcher) {
+                addLauncherToMap(launcher);
+            });
+        }
+    }); 
+}
 
-    // Convert to hex and return the color
-    return '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
+function loadAirDefenses() {
+    $.ajax({
+        url: './scripts/get_airdefenses.php', // Fetch air defenses from the server
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            data.forEach(function(airDefense) {
+                addAirDefenseToMap(airDefense); // Add each air defense to the map
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching air defenses:", error);
+        }
+    });
 }
 
 // Add launcher to map with a range circle and draggable marker
@@ -800,6 +393,144 @@ function addAirDefenseToMap(airDefense) {
     });
 }
 
+function updateLauncherPosition(id, newLat, newLng) {
+    $.post('./scripts/update_launcher_coords.php', {
+        id: id,
+        lat: newLat,
+        lng: newLng
+    });
+}
+
+function updateAirDefensePosition(id, newLat, newLng) {
+    $.post('./scripts/update_airdefense_coords.php', {
+        id: id,
+        lat: newLat,
+        lng: newLng
+    });
+}
+
+// Function to update the launcher layer when adding or removing a launcher
+function reloadLauncherLayer(){
+    launcherLayer.clearLayers();
+    launchers = [];
+    loadLaunchers();
+}
+
+// Function to update the airdefense layer when adding or removing a launcher
+function reloadAirdefenseLayer(){
+    airDefenseLayer.clearLayers();
+    airDefenses = [];
+    loadAirDefenses();
+}
+
+function getAggressiveColor() {
+    // Generate random aggressive colors with more emphasis on red and dark tones
+    let r = Math.floor(Math.random() * 156 + 100); // Red channel - higher intensity
+    let g = Math.floor(Math.random() * 100); // Green channel - low to medium intensity
+    let b = Math.floor(Math.random() * 100); // Blue channel - low to medium intensity
+
+    // Convert to hex and return the color
+    return '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
+}
+
+function loadTargets(){
+    targetLayer.clearLayers();
+    targets.forEach(target => {
+        addTargetToMap(target);
+    });
+}
+
+function addTargetToMap(target){
+    var marker = L.marker([target.lat, target.lng], { draggable: true, icon: targetIcon }).addTo(targetLayer);
+    var launcher = launchers.find(launcher => launcher.id === target.launcherId)
+    launcherId = launcher.id;
+    var launcherName = launcher.name;
+    marker.bindTooltip(
+     `Launcher: ${launcherName}<br>
+     Launch Time(s): ${target.launchTime.toFixed(2)}`, 
+     {
+         permanent: false, 
+         direction: "top"
+     }
+     );
+ 
+     // update target position on drag
+     marker.on('dragend', function (e) {
+         const newPos = e.target.getLatLng();
+ 
+         const originalTarget = targets.find(t => t.id === target.id);
+         
+         if (originalTarget) {
+             if(launcher.range >= map.distance([launcher.lat, launcher.lng], [newPos.lat, newPos.lng])){
+                 originalTarget.lat = newPos.lat;
+                 originalTarget.lng = newPos.lng;
+             }else{ 
+                 targets.pop(target); //if out of range remove it
+                 map.removeLayer(marker);
+             }
+             //console.log(`Target ${originalTarget.id} moved to:`, newPos);
+         }
+     });
+ 
+     // remove target on right click
+     marker.on('contextmenu', function (e) {
+         map.removeLayer(marker);
+         const index = targets.findIndex(t => t.id === target.id);
+         if (index !== -1) targets.splice(index, 1);
+     });
+ 
+}
+
+// returns launchers in range of targets
+function getLaunchersInRange(launchers, targetLat, targetLng){
+     inRange = [];
+     launchers.forEach(function (launcher) {
+             var distance = map.distance([launcher.lat, launcher.lng], [targetLat, targetLng]);
+         
+             // Check if this launcher within range
+             if (distance <= launcher.range) {
+                 inRange.push(launcher);
+             }
+         });
+     return inRange;   
+}
+
+// delete targets that are out of range after moving a launcher
+function updateLauncherTargets(launcherid){
+     var launcher = launchers.find(l => l.id === launcherid);
+     flag = false; // launcher too far from target
+     for (var i = targets.length - 1; i >= 0; i--) {
+         if (targets[i].launcherId === launcherid) {
+             const distance = map.distance([launcher.lat, launcher.lng], [targets[i].lat, targets[i].lng]);
+ 
+             if (launcher.range <= distance) {
+                 targets.splice(i, 1); 
+                 flag = true;
+             } else {
+                 targets[i].timeToImpact = calculateTimeToImpact(
+                     launcher.lat, launcher.lng,
+                     targets[i].lat, targets[i].lng,
+                     launcher.speed
+                 );
+             }
+         }
+     }
+     if(flag)
+         loadTargets();
+}
+  
+function updateTrackedTargets(targets, airdefense, time){
+     for(const target of targets){
+         if(target.launchTime <= time && target.timeToImpact > time && targetInRange(target, airdefense))
+             airdefense.numTrackedTargets++;
+     }
+     console.log(airdefense.numTrackedTargets);
+}
+ 
+function targetInRange(target, airdefense){
+     return map.distance([airdefense.lat, airdefense.lng], [target.lat, target.lng]) <= airdefense.interceptionRange;
+}
+
 //////////////////////////////////////////////////////
 // BLASTS AND INTERCEPTIONS ////////////////////////
 //////////////////////////////////////////////////////
@@ -810,174 +541,6 @@ function addAirDefenseToMap(airDefense) {
 // Transonic	Mach = 1.0
 // Supersonic	Mach > 1.0
 // Hypersonic	Mach > 5.0
-
-///////////SCHEDULED BLASTS////////////
-
-// Simulete button
-L.Control.simulateControl = L.Control.extend({
-    onAdd: function () {
-    var div = L.DomUtil.create('div', 'simulate-btn');
-    div.innerHTML = `
-      <button class="btn btn-danger mb-0">
-        <span><strong>Simulate!</strong></span>
-      </button>
-    `;
-    div.onclick = function(e) {
-        L.DomEvent.stopPropagation(e);
-        simulation();
-    };
-    return div;
-  }
-});
-L.control.simulateControl = function(opts) {
-    return new L.Control.simulateControl(opts);
-}
-
-// Right-click to open modal to select launcher for the blast
-map.on('contextmenu', function (e) {
-    var targetLat = e.latlng.lat;
-    var targetLng = e.latlng.lng;
-    launchersInRange = getLaunchersInRange(launchers, targetLat, targetLng);
-    const dropdown = $('#blastLauncher');
-    dropdown.empty(); 
-
-    $('<option value=""> -- Select Launcher -- </option>').appendTo(dropdown);
-    launchersInRange.forEach(launcher => {
-        $('<option></option>') 
-            .val(launcher.id) 
-            .text(launcher.name) 
-            .appendTo(dropdown)
-    });
-
-    $('#lat').val(targetLat);
-    $('#lng').val(targetLng);
-    $('#blastSelectionModal').modal('show');
-});
-
-var tid = 0; // id of target
-$('#saveBlast').click(function () {  
-    var selectedLauncherId = $('#blastLauncher').val();
-    //var launcher = launchers.find(launcher => launcher.id === parseInt(selectedLauncherId))
-    var lat = $('#lat').val();
-    var lng = $('#lng').val();
-    var launchTime = $('#launchTime').val();
-
-    if (!selectedLauncherId) {
-        alert("Please select a launcher.");
-        return;
-    }
-
-    targets.push({
-        id : tid,
-        launcherId: parseInt(selectedLauncherId),
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
-        launchTime: parseInt(launchTime),  // in seconds
-    });
-    tid++;
-
-    var target = targets.slice(-1)[0];
-    addTargetToMap(target);
-    
-    $('#blastSelectionModal').modal('hide');
-});
-
-
-function addTargetToMap(target){
-   var marker = L.marker([target.lat, target.lng], { draggable: true, icon: targetIcon }).addTo(targetLayer);
-   var launcher = launchers.find(launcher => launcher.id === target.launcherId)
-   launcherId = launcher.id;
-   var launcherName = launcher.name;
-   marker.bindTooltip(
-    `Launcher: ${launcherName}<br>
-    Launch Time(s): ${target.launchTime.toFixed(2)}`, 
-    {
-        permanent: false, 
-        direction: "top"
-    }
-    );
-
-    // update target position on drag
-    marker.on('dragend', function (e) {
-        const newPos = e.target.getLatLng();
-
-        const originalTarget = targets.find(t => t.id === target.id);
-        
-        if (originalTarget) {
-            if(launcher.range >= map.distance([launcher.lat, launcher.lng], [newPos.lat, newPos.lng])){
-                originalTarget.lat = newPos.lat;
-                originalTarget.lng = newPos.lng;
-            }else{ 
-                targets.pop(target); //if out of range remove it
-                map.removeLayer(marker);
-            }
-            //console.log(`Target ${originalTarget.id} moved to:`, newPos);
-        }
-    });
-
-    // remove target on right click
-    marker.on('contextmenu', function (e) {
-        map.removeLayer(marker);
-        const index = targets.findIndex(t => t.id === target.id);
-        if (index !== -1) targets.splice(index, 1);
-    });
-
-}
-
-function getLaunchersInRange(launchers, targetLat, targetLng){
-    inRange = [];
-    launchers.forEach(function (launcher) {
-            var distance = map.distance([launcher.lat, launcher.lng], [targetLat, targetLng]);
-        
-            // Check if this launcher within range
-            if (distance <= launcher.range) {
-                inRange.push(launcher);
-            }
-        });
-    return inRange;   
-}
-
-function updateLauncherTargets(launcherid){
-    var launcher = launchers.find(l => l.id === launcherid);
-    flag = false; // launcher too far from target
-    for (var i = targets.length - 1; i >= 0; i--) {
-        if (targets[i].launcherId === launcherid) {
-            const distance = map.distance([launcher.lat, launcher.lng], [targets[i].lat, targets[i].lng]);
-
-            if (launcher.range <= distance) {
-                targets.splice(i, 1); 
-                flag = true;
-            } else {
-                targets[i].timeToImpact = calculateTimeToImpact(
-                    launcher.lat, launcher.lng,
-                    targets[i].lat, targets[i].lng,
-                    launcher.speed
-                );
-            }
-        }
-    }
-    if(flag)
-        loadTargets();
-}
-
-function loadTargets(){
-    targetLayer.clearLayers();
-    targets.forEach(target => {
-        addTargetToMap(target);
-    });
-}
-
-function updateTrackedTargets(targets, airdefense, time){
-    for(const target of targets){
-        if(target.launchTime <= time && target.timeToImpact > time && targetInRange(target, airdefense))
-            airdefense.numTrackedTargets++;
-    }
-    console.log(airdefense.numTrackedTargets);
-}
-
-function targetInRange(target, airdefense){
-    return map.distance([airdefense.lat, airdefense.lng], [target.lat, target.lng]) <= airdefense.interceptionRange;
-}
 
 // Simulate interception success based on multiple realistic factors
 function determineInterceptionSuccess(airDefense, timeToImpact, interceptionTime, distanceToTarget, launcher) {
@@ -1101,14 +664,11 @@ function simulation() {
 
     // clear the targets array
     //targets = [];
-  }
+}
   
 function simTarget(target, time) {
     const launcher = launchers.find(l => l.id === target.launcherId);
     const lat = parseFloat(target.lat), lng = parseFloat(target.lng);
-
-    
-
 
     console.log(`\n time=${time.toFixed(2)}s: launching ${launcher.name}, at [${lat.toFixed(2)},${lng.toFixed(2)}]`);
 
@@ -1173,8 +733,8 @@ function simTarget(target, time) {
                     color: 'gray',
                     weight: 2,
                     dashArray: '5, 10'
-                }).addTo(map);
-                var interceptionMarker = L.marker(interceptionPoint, { icon: interceptionIcon }).addTo(map);
+                }).addTo(interceptionLayer);
+                var interceptionMarker = L.marker(interceptionPoint, { icon: interceptionIcon }).addTo(interceptionLayer);
                 interceptionMarker.bindTooltip(`
                     <b>${airdefense.name}</b> intercepted the rocket!<br>
                     Time to Impact: ${timeToImpact.toFixed(2)} sec<br>
@@ -1222,95 +782,29 @@ function simTarget(target, time) {
         
 
 }
-  
-L.control.layers(null, {
-    'Launchers & Ranges': launcherLayer,
-    'Blasts': blastLayer,
-    'Air Defenses': airDefenseLayer,
-    'Ukraine War': ukraineWar,
-    'BRICS': brics,
-    'G7': g7,
-    'G20': g20,
-    'N.A.T.O.': nato,
-    'Shanghai C.O.': shangai,
-    'Five Eyes': fiveeyes,
-    'E.U.': eu,
-    'Euro Zone': eok,
-    'WW2 Axis': ww2axis,
-    'WW2 Allies': ww2allies,
-    'Nuclear Reactors': nuclearFactoriesLayer
-}, { position: 'topright', collapsed: false }).addTo(map);
 
-function updateLauncherPosition(id, newLat, newLng) {
-    $.post('./scripts/update_launcher_coords.php', {
-        id: id,
-        lat: newLat,
-        lng: newLng
-    });
-}
+//////////////////
+///// Modals /////
+//////////////////
 
-// Function to update the launcher layer when adding or removing a launcher
-function reloadLauncherLayer(){
-    launcherLayer.clearLayers();
-    launchers = [];
-    loadLaunchers();
-}
+///// Launchers /////
+// Handle "Add Offense" button click
+$('#addLauncherBtn').on('click', function() {
+    // Populate the hidden fields with the clicked coordinates
+    $('#lat').val(clickedLat);
+    $('#lng').val(clickedLng);
+    $('#launcherId').val('');
+    $('#template').val('');
+    $('#name').val('');
 
-// Function to update the airdefense layer when adding or removing a launcher
-function reloadAirdefenseLayer(){
-    airDefenseLayer.clearLayers();
-    airDefenses = [];
-    loadAirDefenses();
-}
+    // Show the launcher modal
+    $('#launcherModal').modal('show');
 
-// Function to fill the form for editing a launcher
-function fillLauncherForm(launcher) {
-    $('#launcherId').val(launcher.id);
-    $('#template').val(launcher.templateID);
-    $('#name').val(launcher.name);
-    
-    $('#lat').val(launcher.lat);
-    $('#lng').val(launcher.lng);
-
-    let description = '';
-    if(launcher.description)
-        description = launcher.description;
-
-    $('#launcherdescription').text(description);
-}
-
-$('#confirmDelete').click(function() {
-    var $button = $(this); 
-    if ($button.prop('disabled')) return; 
-    $button.prop('disabled', true); 
-
-    $.post('./scripts/delete_launcher.php', { id: selectedLauncherId }, function() {
-        $('#deleteModal').modal('hide');
-        reloadLauncherLayer();
-        $button.prop('disabled', false);     
-    });
-
-    // delete targets related to launcher
-    for (let i = 0; i < targets.length; i++) {
-        if (targets[i].launcherId == selectedLauncherId) {
-            targets.splice(i, 1);
-        }
-    }
-    loadTargets();
+    // Hide the selection modal
+    $('#selectionModal').modal('hide');
 });
 
-$('#airconfirmDelete').click(function () {
-    var $button = $(this); 
-    if ($button.prop('disabled')) return; 
-    $button.prop('disabled', true); 
-    $.post('./scripts/delete_airdefense.php', { id: selectedAirDefenseId }, function () {
-        reloadAirdefenseLayer();
-        $('#airdeleteModal').modal('hide');
-        $button.prop('disabled', false); 
-        
-    });
-});
-
+// save 
 $('#saveLauncher').click(function() {
     if ($(this).prop('disabled')) return; 
     var $button = $(this); 
@@ -1346,35 +840,47 @@ $('#saveLauncher').click(function() {
     
 });
 
-// Track clicked position
-var clickedLat = null;
-var clickedLng = null;
+// delete 
+$('#confirmDelete').click(function() {
+    var $button = $(this); 
+    if ($button.prop('disabled')) return; 
+    $button.prop('disabled', true); 
 
-map.on('click', function(e) {
-    clickedLat = e.latlng.lat;
-    clickedLng = e.latlng.lng;
+    $.post('./scripts/delete_launcher.php', { id: selectedLauncherId }, function() {
+        $('#deleteModal').modal('hide');
+        reloadLauncherLayer();
+        $button.prop('disabled', false);     
+    });
 
-    // Open the selection modal
-    $('#selectionModal').modal('show');
+    // delete targets related to launcher
+    for (let i = 0; i < targets.length; i++) {
+        if (targets[i].launcherId == selectedLauncherId) {
+            targets.splice(i, 1);
+        }
+    }
+    loadTargets();
 });
 
-// Handle "Add Launcher" button click
-document.getElementById('addLauncherBtn').onclick = function() {
-    // Populate the hidden fields with the clicked coordinates
-    $('#lat').val(clickedLat);
-    $('#lng').val(clickedLng);
-    $('#launcherId').val('');
-    $('#template').val('');
-    $('#name').val('');
-    // Show the launcher modal
-    $('#launcherModal').modal('show');
+// Function to fill the form for editing a launcher
+function fillLauncherForm(launcher) {
+    $('#launcherId').val(launcher.id);
+    $('#template').val(launcher.templateID);
+    $('#name').val(launcher.name);
+    
+    $('#lat').val(launcher.lat);
+    $('#lng').val(launcher.lng);
 
-    // Hide the selection modal
-    $('#selectionModal').modal('hide');
-};
+    let description = '';
+    if(launcher.description)
+        description = launcher.description;
 
-// Handle "Add Air Defense" button click
-document.getElementById('addAirDefenseBtn').onclick = function(e) {
+    $('#launcherdescription').text(description);
+}
+
+///// Air Defences /////
+
+// Handle "Add Defense" button click 
+$('#addAirDefenseBtn').on('click', function(e) {
     $('#airDefenselat').val(clickedLat);
     $('#airDefenselng').val(clickedLng);
     $('#airDefenseId').val('');
@@ -1386,7 +892,7 @@ document.getElementById('addAirDefenseBtn').onclick = function(e) {
 
     // Hide the selection modal
     $('#selectionModal').modal('hide');
-};
+});
 
 // Handle air defense template selection and populate the name field
 $('#airDefenseTemplate').on('change', function() {
@@ -1411,6 +917,7 @@ $('#airDefenseTemplate').on('change', function() {
     }
 });
 
+// save
 $('#saveAirDefense').click(function () {
     if ($(this).prop('disabled')) return; 
     var $button = $(this); 
@@ -1441,13 +948,18 @@ $('#saveAirDefense').click(function () {
     });
 });
 
-function updateAirDefensePosition(id, newLat, newLng) {
-    $.post('./scripts/update_airdefense_coords.php', {
-        id: id,
-        lat: newLat,
-        lng: newLng
+// delete air defense button
+$('#airconfirmDelete').click(function () {
+    var $button = $(this); 
+    if ($button.prop('disabled')) return; 
+    $button.prop('disabled', true); 
+    $.post('./scripts/delete_airdefense.php', { id: selectedAirDefenseId }, function () {
+        reloadAirdefenseLayer();
+        $('#airdeleteModal').modal('hide');
+        $button.prop('disabled', false); 
+        
     });
-}
+});
 
 function fillAirDefenseForm(airDefense) {
     // console.log(airDefense)
@@ -1462,6 +974,58 @@ function fillAirDefenseForm(airDefense) {
     // Trigger the dropdown to update the template and other values
     $('#airDefenseTemplate').val(airDefense.templateID).trigger('change');
 }
+
+///// Blasts /////
+
+// Right-click to open modal to select launcher for the blast
+map.on('contextmenu', function (e) {
+    clickedLat = e.latlng.lat;
+    clickedLng = e.latlng.lng;
+    launchersInRange = getLaunchersInRange(launchers, clickedLat, clickedLng);
+    const dropdown = $('#blastLauncher');
+    dropdown.empty(); 
+
+    $('<option value=""> -- Select Launcher -- </option>').appendTo(dropdown);
+    launchersInRange.forEach(launcher => {
+        $('<option></option>') 
+            .val(launcher.id) 
+            .text(launcher.name) 
+            .appendTo(dropdown)
+    });
+
+    $('#lat').val(clickedLat);
+    $('#lng').val(clickedLng);
+    $('#blastSelectionModal').modal('show');
+});
+
+let targetId = 0; // id of target
+$('#saveBlast').click(function () {  
+    let selectedLauncherId = $('#blastLauncher').val();
+    //var launcher = launchers.find(launcher => launcher.id === parseInt(selectedLauncherId))
+    let lat = $('#lat').val();
+    let lng = $('#lng').val();
+    let launchTime = $('#launchTime').val();
+
+    if (!selectedLauncherId) {
+        alert("Please select a launcher.");
+        return;
+    }
+
+    targets.push({
+        id : targetId,
+        launcherId: parseInt(selectedLauncherId),
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        launchTime: parseInt(launchTime),  // in seconds
+    });
+    targetId++;
+
+    let target = targets.slice(-1)[0];
+    addTargetToMap(target);
+    
+    $('#blastSelectionModal').modal('hide');
+});
+
 
 // On page load
 $.getJSON("./scripts/get_session_data.php", function(data) {
@@ -1480,7 +1044,6 @@ $.getJSON("./scripts/get_session_data.php", function(data) {
     loadAirDefenses();  
 });
 
-
 // On page close
 window.addEventListener("beforeunload", function(event) {
     navigator.sendBeacon("./scripts/delete_temp_launchers.php");
@@ -1489,5 +1052,3 @@ window.addEventListener("beforeunload", function(event) {
 window.addEventListener("beforeunload", function(event) {
     navigator.sendBeacon("./scripts/delete_temp_airdefenses.php");
 });
-
-

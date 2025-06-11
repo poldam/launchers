@@ -47,8 +47,10 @@
         <script>
             // pass login_url to main.js
             window.loginUrl = "<?php echo htmlspecialchars($login_url); ?>";
-            console.log(window.loginUrl);
+            //console.log(window.loginUrl);
         </script>
+
+        <!-- Modals -->
 
         <div class="modal fade" id="launcherModal" tabindex="-1" aria-labelledby="launcherModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -533,8 +535,10 @@
     <script src="./js/bootstrap.bundle.min.js"></script>
     <script src="./js/leaflet.js"></script>
     <script src="./js/Leaflet.CountrySelect.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    
     <script src="./js/main.js"></script>
+    <script src="./js/layerControls.js"></script>
     
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
