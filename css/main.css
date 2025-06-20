@@ -20,22 +20,21 @@ body {
     top: 20px; 
     left: 20px; 
     z-index: 1000; 
-    height: 70px; 
+    height: 70px;      
 }
 
-#disclaimer{
-    position: absolute;
-    bottom: 10px; 
-    left: 50%;
-    transform: translateX(-50%); 
-    z-index: 2000; 
-    width: 70%; 
-    opacity: 0.8;
+/* instruction modal */
+/* #instructionsModal .modal-content {
+    max-height: 90vh;
 }
+#instructionsModal .modal-body {
+    overflow-y: auto;
+    padding: 1rem;
+} */
 
-#disclaimer:hover{
-    transition: 0.5s;
-    opacity: 1
+.modal-body {
+    max-height: 70vh;   /* or whatever height fits your design */
+    overflow-y: auto;
 }
 
 #info-btn {
@@ -56,20 +55,133 @@ body {
     height: 100svh; 
     border-radius: 4px;
 }
+.disable-select {
+    -webkit-user-select: none;  /* Safari */
+    -moz-user-select: none;     /* Firefox */
+    -ms-user-select: none;      /* Internet Explorer/Edge */
+    user-select: none;          /* Standard */
+}
 
 .leaflet-control-attribution.leaflet-control {
     display: none;
 }
 
 .leaflet-control-locate {
-    background-color: white;
-    padding: 8px;
+    background-color: #fff;
+    padding: 8px 12px;
     border-radius: 5px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     cursor: pointer;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    transition: background-color 0.2s ease;
+    text-align: center;
+    user-select: none;
+  }
+
+.btn-danger {
+    background-color: #e05c5c;
+    border-color: #e05c5c;
+}
+  
+.btn-danger:hover {
+    background-color: #cc4d4d;
+    border-color: #cc4d4d;
 }
 
 /* maps control */
+
+.map-controls {
+    background: rgba(131, 131, 131, 0.415);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    width: auto;
+    max-width: 250px;
+    height: 125px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    opacity: 0.85;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 200ms; 
+}
+
+.map-controls:hover{
+    opacity: 1;
+}
+#settings-btn{
+    color: #72777e;
+    position: absolute;
+    bottom: 5px;
+    right: 0px;
+    margin: 5px;
+
+    background: transparent;
+    border: transparent;
+
+    transition: 200ms;
+}
+#settings-btn:hover{
+   color: #4a4e54
+}
+#location-btn{
+    color: #72777e;
+    position: absolute;
+    bottom: 5px;
+    right: 45px;
+    margin: 5px;
+
+    background: transparent;
+    border: transparent;
+
+    transition: 200ms;
+}
+#location-btn:hover{
+   color: #4a4e54
+}
+
+@media (max-width: 600px) {
+    .map-controls {
+        width:auto;
+        height: auto;
+        max-width: 200px;
+        max-height: 180px;
+    }
+}
+
+.button-row {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;           
+    align-items: flex-end; 
+    margin-top: auto;   
+}
+
+.button-row.clear-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two per row */
+    gap: 5px;
+    padding-bottom: 5px;
+}
+
+.button-row.clear-buttons button {
+    background: #60656c;
+    color: white;
+    font-size: 10px;
+    padding: 5px;
+    width: 100%; /* Fill each cell */
+    cursor: pointer;
+    white-space: nowrap;
+
+    border: 0px;
+    border-radius: 5px;
+
+    transition: background 200ms; 
+}
+.button-row.clear-buttons button:hover{
+    background: #4a4e54 ;
+}
+
 .maps-control .leaflet-control-layers-toggle {
     background-image: none !important;
     width: 45px;
@@ -103,25 +215,20 @@ body {
     color: red;
 }
 
-.google-logo {
-    width: 20px;
-    margin-right: 10px;
-}
-
 .google-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #ffffff;
-    border: 1px solid #dfdfdf;
+    background-color: #60656c;
+    border: transparent;
     padding: 8px;
     border-radius: 5px;
-    color: #333333;
+    color: #ffffff;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     transition: background-color 0.3s ease;
 }
 
 .google-btn:hover {
-    background-color: #f1f1f1;
+    background-color: #4a4e54;
 }

@@ -4,7 +4,7 @@
 
 	$data = [
 		'google_id' => $_SESSION['google_id'] ?? null,
-		'session_id' => session_id()
+		'temp_id' => bin2hex(random_bytes(16))
 	];
 
 	echo json_encode($data);

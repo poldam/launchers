@@ -1,5 +1,5 @@
 var google_id = null;
-var session_id = null;
+var temp_id = null;
 
 $(document).ready(function() {
     $('#template').on('change', function() {
@@ -23,6 +23,19 @@ $(document).ready(function() {
             $('#launcherForm')[0].reset();
         }
     });
+
+    
+    // add buttons to map
+    if(google_id == null){ // Show button if not logged in
+        L.control.LoginControl({ position: 'bottomright' }).addTo(map);
+        $('#instructionsModal').modal('show'); // show the info modal
+    }
+    else
+        L.control.LogoutControl({ position: 'bottomright' }).addTo(map); 
+
+    // Load launchers 
+    loadLaunchers(); 
+    loadAirDefenses(); 
 });
 
 // Initialize the map and markers
@@ -80,46 +93,122 @@ var rangeCircle = null;
 var userMarker = null; // Store the user location marker
 var userCircle = null; // Store the user location circle
 
-/////////////////////////////
-// Google Login Button//////
-///////////////////////////
-L.Control.LoginControl = L.Control.extend({
-    onAdd: function () {
-    var div = L.DomUtil.create('div', 'google-btn-login');
-    div.innerHTML = `
-      <button class="google-btn" onclick="window.location.href='${window.loginUrl}'">
-        <img class="google-logo" src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo">
-        <span>Login with Google</span>
-      </button>
-    `;
-    div.onclick = function(e) {
-        L.DomEvent.stopPropagation(e);
-    };
-    return div;
-  }
-});
 
-L.control.LoginControl = function(opts) {
-    return new L.Control.LoginControl(opts);
+/////////////////////////////
+// Map Controls////////////
+///////////////////////////
+L.Control.mapControls = L.Control.extend({
+    options: {
+      position: 'bottomright'
+    },
+  
+    onAdd: function () {
+      var div = L.DomUtil.create('div', 'map-controls');
+  
+      div.innerHTML = `
+        <div class="button-row clear-buttons">
+            <button id="btn-clear-launchers">Clear Launchers</button>
+            <button id="btn-clear-airdefenses">Clear Air Defenses</button>
+            <button id="btn-clear-blasts">Clear Blasts</button>
+            <button id="btn-clear-targets">Clear Targets</button>
+        </div>
+  
+        <div class="button-row">
+            <div class="button-row">
+                <div class="simulate-btn">
+                    <button class="btn btn-danger mb-0"><strong>Simulate!</strong></button>
+                </div>
+            </div> 
+  
+            <button id="settings-btn">
+                <i class="fa-solid fa-circle-info" style="font-size: 25px;"></i>
+            </button>
+            <button id="location-btn">
+                <i class="fa-solid fa-location-dot" style="font-size: 25px;"></i>
+            </button>
+        </div>
+      `;
+  
+      return div;
+    }
+  });
+  
+  var mapControls = new L.Control.mapControls();
+  map.addControl(mapControls);
+  
+  $(function () {
+    $('#btn-clear-launchers').on('click', function (e) {
+      //e.stopPropagation();
+      clearLaunchers();
+      loadAirDefenses();
+    });
+    $('#btn-clear-airdefenses').on('click', function (e) {
+      e.stopPropagation();
+      clearAirdefenses();
+      loadAirDefenses();
+    });
+    $('#btn-clear-blasts').on('click', function (e) {
+      e.stopPropagation();
+      clearBlasts();
+    });
+    $('#btn-clear-targets').on('click', function (e) {
+      e.stopPropagation();
+      clearTargets();
+    });
+    $('.simulate-btn button').on('click', function (e) {
+      e.stopPropagation();
+      simulation();
+    });
+    $('#settings-btn').on('click', function (e) {
+      e.stopPropagation();
+      $('#instructionsModal').modal('show');
+    });
+    $('#location-btn').on('click', function (e) {
+      e.stopPropagation();
+      findMyLocation();
+    });
+  });
+
+
+// clear functions
+function clearLaunchers() {
+    launchers = [];
+    launcherLayer.clearLayers();
+    $.ajax({
+        url: './scripts/delete_launchers.php',   
+        method: 'POST',
+        success: function(response) {
+            console.log('Launchers cleared', response);
+        },
+        error: function(err) {
+            console.error('Error clearing launchers', err);
+        }
+    });
 }
 
-////////////////////////////////
-// FIND MY LOCATION ///////////
-//////////////////////////////
-L.Control.LocateControl = L.Control.extend({
-    onAdd: function() {
-        var div = L.DomUtil.create('div', 'leaflet-control-locate');
-        div.innerHTML = 'Find My Location';
-        div.onclick = function(e) {
-            L.DomEvent.stopPropagation(e);
-            findMyLocation();
-        };
-        return div;
-    }
-});
+function clearAirdefenses() {
+    airDefenses = [];
+    airDefenseLayer.clearLayers();
+    $.ajax({
+        url: './scripts/delete_airdefenses.php', 
+        method: 'POST',
+        success: function(response) {
+            console.log('Airdefenses cleared', response);
+        },
+        error: function(err) {
+            console.error('Error clearing airdefenses:', err);
+        }
+    });
+}
 
-L.control.locateControl = function(opts) {
-    return new L.Control.LocateControl(opts);
+function clearTargets() {
+    targets = []
+    targetLayer.clearLayers();
+}
+
+function clearBlasts() {
+  blastLayer.clearLayers();
+  interceptionLayer.clearLayers();
 }
 
 // Find and locate the user's position
@@ -148,26 +237,48 @@ function findMyLocation() {
     });
 }
 
-////////////////////////////////
-// Simulate Button ///////////
-//////////////////////////////
-L.Control.simulateControl = L.Control.extend({
+/////////////////////////////
+// Google Login Button//////
+///////////////////////////
+L.Control.LoginControl = L.Control.extend({
     onAdd: function () {
-    var div = L.DomUtil.create('div', 'simulate-btn');
+    var div = L.DomUtil.create('div', 'google-btn-login');
     div.innerHTML = `
-      <button class="btn btn-danger mb-0">
-        <span><strong>Simulate!</strong></span>
+      <button class="google-btn" onclick="window.location.href='${window.loginUrl}'">
+        <i class="fa-brands fa-google" style="margin-right: 6px;"></i>
+        <span>Login with Google</span>
       </button>
     `;
     div.onclick = function(e) {
+        clearAirdefenses();
+        clearLaunchers();
         L.DomEvent.stopPropagation(e);
-        simulation();
     };
     return div;
   }
 });
-L.control.simulateControl = function(opts) {
-    return new L.Control.simulateControl(opts);
+
+L.control.LoginControl = function(opts) {
+    return new L.Control.LoginControl(opts);
+}
+
+L.Control.LogoutControl = L.Control.extend({
+    onAdd: function () {
+    var div = L.DomUtil.create('div', 'google-btn-logout');
+    div.innerHTML = `
+      <button class="google-btn" onclick="window.location.href='./auth/logout.php'">
+        <span>Logout</span>
+      </button>
+    `;
+    div.onclick = function(e) {
+        L.DomEvent.stopPropagation(e);
+    };
+    return div;
+  }
+});
+
+L.control.LogoutControl = function(opts) {
+    return new L.Control.LogoutControl(opts);
 }
 
 //////////////////////////////////////////////////
@@ -1031,24 +1142,12 @@ $('#saveBlast').click(function () {
 $.getJSON("./scripts/get_session_data.php", function(data) {
     // Get session data
     google_id = data['google_id']; 
-    session_id = data['session_id'];
-
-    // Add buttons to map
-    if(google_id == null) // Show button if not logged in
-        L.control.LoginControl({ position: 'bottomleft' }).addTo(map);
-
-    L.control.locateControl({ position: 'bottomleft' }).addTo(map);
-    L.control.simulateControl({ position: 'bottomleft' }).addTo(map);
-    // Load launchers on page load
-    loadLaunchers(); 
-    loadAirDefenses();  
-});
-
-// On page close
-window.addEventListener("beforeunload", function(event) {
-    navigator.sendBeacon("./scripts/delete_temp_launchers.php");
+    temp_id = data['temp_id'];    
 });
 
 window.addEventListener("beforeunload", function(event) {
-    navigator.sendBeacon("./scripts/delete_temp_airdefenses.php");
+    if(!google_id){
+        navigator.sendBeacon("./scripts/delete_launchers.php");
+        navigator.sendBeacon("./scripts/delete_airdefenses.php");
+    }
 });

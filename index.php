@@ -30,17 +30,11 @@
  
     <link rel="stylesheet" href="./css/main.css" />  
 </head>
-<body>
+<body class="disable-select">
     <div class="d-flex vh-100 vw-100">
         <a href="../"><img src="../logo.png" class="logo" alt=""></a> 
 
-        <div class="alert alert-danger mb-3" id='disclaimer'> 
-            <strong>DISCLAIMER:</strong> The information provided in this application is for scientific, educational, and experimental purposes only. 
-            While we strive to present accurate and useful data, the information contained herein may not be verified or completely reliable. 
-            We do not promote, condone, or encourage warfare, violence, or aggressive actions of any kind. This application is intended solely 
-            for research and educational exploration, and users are advised to exercise caution and responsibility when interpreting or utilizing the data presented.
-            <button type="button" class="close" onclick="document.getElementById('disclaimer').style.display='none'">&times;</button>
-        </div> 
+        
 
         <div id="map" class="mb-3"></div>
         
@@ -175,55 +169,9 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>   
 
-
-        <button type="button" id="info-btn" class="btn" onclick="$('#infoModal').modal('show')">
-            <img src="images/info.png" alt="Info" width="40" height="40">
-        </button>
-
-        <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="infoModalLabel">Info</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                    <div class="modal-body">
-                        <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#rangeModal">
-                            Range Calculation
-                        </button>
-
-                        <button type="button" class="btn btn-secondary mb-2" data-toggle="modal" data-target="#blastRadiusModal">
-                            Blast Radius Calculation
-                        </button>
-
-                        <button type="button" class="btn btn-success mb-2" data-toggle="modal" data-target="#icbmModal">
-                            Factors Affecting ICBM Range
-                        </button>
-
-                        <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#instructionsModal">
-                            Instructions
-                        </button>
-                    </div>
-                    <div class="modal-footer">
-                    <?php if(!empty($_SESSION['google_id'])) { ?>                            
-                        <a href ="./auth/logout.php">Logout</a>
-                    <?php } ?>
-                        <?php if(!empty($_SESSION['loggedin'])) { ?>
-                            <a href ="./launchers/">Offense Templates</a> | 
-                            <a href ="./airdefenses/">Defense Templates</a> 
-                        <?php } ?> 
-
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>     
-
-        <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="true">
+        <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="false">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -289,7 +237,7 @@
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary close-info" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -328,7 +276,7 @@
                         </ul>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Κλείσιμο</button>
+                        <button type="button" class="btn btn-secondary close-info" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -388,7 +336,7 @@
                         </ul>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary close-info" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -462,43 +410,48 @@
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="instructionsModalLabel">Application Instructions & Interception Logic</h5>
+                    <h5 class="modal-title" id="instructionsModalLabel">Instructions & Interception Logic</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="container">
+                    <div class="container-fluid">
+                        <div class="alert alert-danger mb-2" id='disclaimer'> 
+                            <strong>DISCLAIMER:</strong> The information provided in this application is for scientific, educational, and experimental purposes only. 
+                            While we strive to present accurate and useful data, the information contained herein may not be verified or completely reliable. 
+                            We do not promote, condone, or encourage warfare, violence, or aggressive actions of any kind. This application is intended solely 
+                            for research and educational exploration, and users are advised to exercise caution and responsibility when interpreting or utilizing the data presented.
+                        </div> 
                     <div class="row">
                         <div class="col-md-6">
-                        <h4>Application Instructions</h4>
-                        <p><strong>1. Adding a Launcher:</strong><br>
-                        - Left-click anywhere on the map to add a new launcher.<br>
-                        - Select a launcher template from the dropdown, you can modify the name.
+                        <h4>Instructions</h4>
+                        <p><strong>1. Adding Launchers/Air Defenses to the Map:</strong><br>
+                            - Left-click anywhere on the map.<br>
+                            - Select "Add Offense" to add a launcher, or "Add Defense" to add an air defense system.<br>
+                            - Choose a template from the dropdown menu and optionally rename the item.<br>
+                            - When added, air defense systems display two range circles: one for detection and one for interception. Launchers display their range.
                         </p>
 
-                        <p><strong>2. Modifying a Launcher:</strong><br>
-                        - Left-click an existing launcher to modify details in the modal.<br>
-                        - Drag launchers to reposition them on the map.
+                        <p><strong>2. Editing and Moving Launchers/Air Defenses:</strong><br>
+                            - Left-click a launcher or air defense system to open the edit modal and modify its details.<br>
+                            - Drag markers to reposition them on the map.
                         </p>
 
-                        <p><strong>3. Deleting a Launcher:</strong><br>
-                        - Right-click a launcher marker to delete it. A confirmation prompt will appear before removing the launcher.
+                        <p><strong>3. Deleting Launchers/Air Defenses:</strong><br>
+                            - Right-click a launcher or air defense marker.<br>
+                            - A confirmation prompt will appear before deletion.
                         </p>
 
-                        <p><strong>4. Creating a Blast:</strong><br>
-                        - Right-click inside the range circle to simulate a blast. The closest launcher will be used if multiple launchers overlap.<br>
-                        - The blast will be displayed visually on the map.
+                        <p><strong>4. Simulating Attacks:</strong><br>
+                            - Right-click on the map (ideally inside a launcher's range circle).<br>
+                            - Select a launcher from those in range.<br>
+                            - Enter a delay, in seconds for the rocket launch.<br>
+                            - A draggable target marker will appear on the map.<br>
+                            - Right-click a target to remove it.<br>
+                            - Click "Simulate!" to run the attack simulation.
                         </p>
-
-                        <p><strong>5. Adding an Air Defense System:</strong><br>
-                        - Right-click and select "Air Defense" to bring up the air defense modal. Choose a system from predefined templates.<br>
-                        - Two range circles will be added for detection and interception.
-                        </p>
-
-                        <p><strong>6. Modifying and Deleting an Air Defense:</strong><br>
-                        - Left-click to edit, and right-click to delete an air defense system. Dragging is supported to move them.
-                        </p>
+ 
                         </div>
 
                         <div class="col-md-6">
@@ -517,25 +470,66 @@
                         <strong>5. Environmental Factors:</strong> A small random factor is included to simulate environmental conditions (e.g., fog, interference), further reducing accuracy.
                         </p>
 
-                        <p>The final interception success is a combination of these factors, dynamically adjusting with each interception attempt.</p>
+                        <p>The final interception success is a combination of these factors, dynamically adjusting with each interception attempt.</p>       
                         </div>
                     </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
+                    <div class="col text-start"> 
+                        <button type="button" class="btn btn-primary mb-2" id="openRange">
+                            Range Calculation
+                        </button>
+
+                        <button type="button" class="btn btn-secondary mb-2" id="openBlastRadius">
+                            Blast Radius Calculation
+                        </button>
+
+                        <button type="button" class="btn btn-success mb-2" id="openICBM">
+                            Factors Affecting ICBM Range
+                        </button>
+                    </div>
+                        <button type="button" class="btn btn-secondary mb-2" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
-
     <script src="./js/jquery-3.5.1.min.js"></script>
+
+    <script>
+        let openModal;
+        $('#openRange').on('click', function () {
+            $('#instructionsModal').modal('hide');
+            openModal = '#rangeModal';
+            $('#rangeModal').modal('show');
+        });
+
+        $('#openBlastRadius').on('click', function () {
+            $('#instructionsModal').modal('hide');
+            openModal = '#blastRadiusModal';
+            $('#blastRadiusModal').modal('show');
+        });
+
+        $('#openICBM').on('click', function () {
+            $('#instructionsModal').modal('hide');
+            openModal = '#icbmModal';
+            $('#icbmModal').modal('show');
+        });
+
+        $('.close-info').on('click', function () {
+            $(openModal).modal('hide');
+            $('#instructionsModal').modal('show');
+        });
+
+    </script>                                 
+
+
     <script src="./js/bootstrap.bundle.min.js"></script>
     <script src="./js/leaflet.js"></script>
     <script src="./js/Leaflet.CountrySelect.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
     
     <script src="./js/main.js"></script>
     <script src="./js/layerControls.js"></script>
