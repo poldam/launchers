@@ -138,7 +138,7 @@ L.Control.mapControls = L.Control.extend({
   
   $(function () {
     $('#btn-clear-launchers').on('click', function (e) {
-      //e.stopPropagation();
+      e.stopPropagation();
       clearLaunchers();
       loadAirDefenses();
     });
