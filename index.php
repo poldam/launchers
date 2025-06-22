@@ -163,13 +163,19 @@
                             </div>
                         </form>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="saveBlast">Select</button>
+                    <div class="modal-footer d-flex justify-content-between w-100">
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-danger" id="fire-now">Fire Now</button>
+                            <button type="button" class="btn btn-primary" id="saveBlast">Schedule</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>   
+        </div>
+    </div>   
 
         <div class="modal fade" id="rangeModal" tabindex="-1" role="dialog" aria-labelledby="rangeModalLabel" aria-hidden="false">
             <div class="modal-dialog modal-lg" role="document">

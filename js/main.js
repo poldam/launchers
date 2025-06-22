@@ -140,12 +140,10 @@ L.Control.mapControls = L.Control.extend({
     $('#btn-clear-launchers').on('click', function (e) {
       e.stopPropagation();
       clearLaunchers();
-      loadAirDefenses();
     });
     $('#btn-clear-airdefenses').on('click', function (e) {
       e.stopPropagation();
       clearAirdefenses();
-      loadAirDefenses();
     });
     $('#btn-clear-blasts').on('click', function (e) {
       e.stopPropagation();
@@ -184,6 +182,7 @@ function clearLaunchers() {
             console.error('Error clearing launchers', err);
         }
     });
+    loadLaunchers();
 }
 
 function clearAirdefenses() {
@@ -199,6 +198,7 @@ function clearAirdefenses() {
             console.error('Error clearing airdefenses:', err);
         }
     });
+    loadAirDefenses();
 }
 
 function clearTargets() {
@@ -1137,6 +1137,32 @@ $('#saveBlast').click(function () {
     $('#blastSelectionModal').modal('hide');
 });
 
+$('#fire-now').click(function () {   
+    let selectedLauncherId = $('#blastLauncher').val();
+    //var launcher = launchers.find(launcher => launcher.id === parseInt(selectedLauncherId))
+    let lat = $('#lat').val();
+    let lng = $('#lng').val();
+    let launchTime = $('#launchTime').val();
+
+    if (!selectedLauncherId) {
+        alert("Please select a launcher.");
+        return;
+    }
+
+    targets.push({
+        id : targetId,
+        launcherId: parseInt(selectedLauncherId),
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        launchTime: parseInt(launchTime),  // in seconds
+    });
+    targetId++;
+
+    let target = targets.pop();
+    simTarget(target,0);
+    
+    $('#blastSelectionModal').modal('hide');
+});
 
 // On page load
 $.getJSON("./scripts/get_session_data.php", function(data) {
