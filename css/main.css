@@ -111,11 +111,9 @@ body {
 }
 #settings-btn{
     color: #72777e;
-    position: absolute;
-    bottom: 5px;
-    right: 0px;
-    margin: 5px;
-
+    position: relative;
+    padding-right: 5px;
+    padding-bottom: 3px;
     background: transparent;
     border: transparent;
 
@@ -126,11 +124,8 @@ body {
 }
 #location-btn{
     color: #72777e;
-    position: absolute;
-    bottom: 5px;
-    right: 45px;
-    margin: 5px;
-
+    position: relative;
+    padding-bottom: 3px;
     background: transparent;
     border: transparent;
 
@@ -181,6 +176,20 @@ body {
 .button-row.clear-buttons button:hover{
     background: #4a4e54 ;
 }
+
+/* progress bar */
+.progress-slice {
+    flex: 1;
+    background-color: #ddd;
+    border-radius: 4px;
+    height: 2px;
+    transition: background-color 0.3s;
+  }
+  
+  .progress-slice.filled {
+    background-color: #c6544b;
+  }
+
 
 .maps-control .leaflet-control-layers-toggle {
     background-image: none !important;

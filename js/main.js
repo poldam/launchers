@@ -23,8 +23,8 @@ $(document).ready(function() {
             $('#launcherForm')[0].reset();
         }
     });
+    $('#delayRange').val(delayTime);
 
-    
     // add buttons to map
     if(google_id == null){ // Show button if not logged in
         L.control.LoginControl({ position: 'bottomright' }).addTo(map);
@@ -36,6 +36,7 @@ $(document).ready(function() {
     // Load launchers 
     loadLaunchers(); 
     loadAirDefenses(); 
+    renderProgressBar('progressBar', 0, 0);
 });
 
 // Initialize the map and markers
@@ -116,7 +117,7 @@ L.Control.mapControls = L.Control.extend({
         <div class="button-row">
             <div class="button-row">
                 <div class="simulate-btn">
-                    <button class="btn btn-danger mb-0"><strong>Simulate!</strong></button>
+                    <button id="simulateButton"class="btn btn-danger mb-0"><strong>Simulate!</strong></button>
                 </div>
             </div> 
   
@@ -127,15 +128,23 @@ L.Control.mapControls = L.Control.extend({
                 <i class="fa-solid fa-location-dot" style="font-size: 25px;"></i>
             </button>
         </div>
+        <div id="progressBar" style="display: flex; height: 4px; gap: 2px; padding-top:7px;"></div>
       `;
-  
+//      <div class="slidecontainer" style="display: flex; align-items: center; gap: 5px; padding-bottom: 2px;"> 
+//         <span style="font-weight: bold;">Delay</span>     
+//         <input type="range" min="0" max="1000" step="100" value="0" id="delayRange" style="width: 100px; height: 5px;">
+//         <span id="delayValue" style="font-weight: bold;">500</span> ms     
+//     </div>
+        
       return div;
     }
   });
+
+
   
   var mapControls = new L.Control.mapControls();
   map.addControl(mapControls);
-  
+
   $(function () {
     $('#btn-clear-launchers').on('click', function (e) {
       e.stopPropagation();
@@ -165,8 +174,15 @@ L.Control.mapControls = L.Control.extend({
       e.stopPropagation();
       findMyLocation();
     });
-  });
+    $('.slidecontainer').on('mousedown touchstart pointerdown click', function (e) {
+        e.stopPropagation();
+        delayTime = $('#delayRange').val();
+      });
 
+      $('#delayRange').on('input', () => {
+        $('#delayValue').text($('#delayRange').val());
+    });
+  });
 
 // clear functions
 function clearLaunchers() {
@@ -237,6 +253,21 @@ function findMyLocation() {
     });
 }
 
+// progress bar
+function renderProgressBar(containerId, totalSlices, filledSlices) {
+    
+    const container = $('#' + containerId);
+    totalSlices === 0 ? container.hide() : container.show();
+    
+    container.empty(); 
+    for (let i = 0; i < totalSlices; i++) {
+        const isFilled = i < filledSlices ? 'filled' : '';
+        const slice = $('<div></div>')
+            .addClass('progress-slice')
+            .addClass(isFilled);
+        container.append(slice);
+    }
+}
 /////////////////////////////
 // Google Login Button//////
 ///////////////////////////
@@ -749,34 +780,49 @@ function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     return reactionTime + (distance / interceptionSpeed);  // Total interception time = reaction time + travel time
 }
 
-function simulation() {
-    if (targets.length === 0) return;
-  
-    // reset layers & stats
-    //targetLayer.clearLayers();
-    //blastLayer.clearLayers();
-    
-    // sort by launchTime ascending
-    targets.sort((a, b) => a.launchTime - b.launchTime);
-  
-    // track time
-    let simTime = 0;
-  
-    // process each blast at its scheduled launchTime
-    for (const target of targets) {
-      simTime = target.launchTime;
-      simTarget(target, simTime);
-    }
-    
-    // reset tracked targets
-    for (const airdefense of detectedAirDefenses) 
-        airdefense.numTrackedTargets = 0 
-      
-
-    // clear the targets array
-    //targets = [];
+var delayTime = 500;
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
   
+async function simulation() {
+    $('#simulateButton').prop('disabled', true);
+    let count = 0;
+    renderProgressBar('progressBar', targets.length, count);
+    if (targets.length === 0) {
+        $('#simulateButton').prop('disabled', false);
+        return;
+    }
+
+    
+
+    // sort by launchTime ascending
+    targets.sort((a, b) => a.launchTime - b.launchTime);
+
+    // track time
+    let simTime = 0;
+
+    let previousTime = 0;
+    for (const target of targets) {
+        simTime = target.launchTime;
+
+        simTarget(target, simTime);
+        previousTime = simTime;
+
+        if (delayTime > 0) {
+            await delay(delayTime);
+        }
+        renderProgressBar('progressBar', targets.length, ++count);
+    }
+
+    // reset tracked targets
+    for (const airdefense of detectedAirDefenses)
+        airdefense.numTrackedTargets = 0;
+
+    $('#simulateButton').prop('disabled', false);
+    return;
+}
+
 function simTarget(target, time) {
     const launcher = launchers.find(l => l.id === target.launcherId);
     const lat = parseFloat(target.lat), lng = parseFloat(target.lng);
@@ -1133,7 +1179,7 @@ $('#saveBlast').click(function () {
 
     let target = targets.slice(-1)[0];
     addTargetToMap(target);
-    
+    renderProgressBar('progressBar', targets.length, 0);
     $('#blastSelectionModal').modal('hide');
 });
 
