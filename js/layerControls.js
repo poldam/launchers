@@ -385,6 +385,7 @@ fetch('./assets/nuclear.json')
 const controlLayers = L.control.layers(null, {
     'Launchers & Ranges': launcherLayer,
     'Blasts': blastLayer,
+    'Targets': targetLayer,
     'Interceptions': interceptionLayer,
     'Air Defenses': airDefenseLayer,
     'Ukraine War': countryGroups.ukraineWar,

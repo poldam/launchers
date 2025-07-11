@@ -23,7 +23,7 @@ $(document).ready(function() {
             $('#launcherForm')[0].reset();
         }
     });
-    $('#delayRange').val(delayTime);
+    //$('#delayRange').val(delayTime);
 
     // add buttons to map
     if(google_id == null){ // Show button if not logged in
@@ -780,11 +780,10 @@ function calculateInterceptionTime(airDefense, targetLat, targetLng) {
     return reactionTime + (distance / interceptionSpeed);  // Total interception time = reaction time + travel time
 }
 
-var delayTime = 500;
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-  
+
 async function simulation() {
     $('#simulateButton').prop('disabled', true);
     let count = 0;
@@ -794,24 +793,21 @@ async function simulation() {
         return;
     }
 
-    
-
     // sort by launchTime ascending
     targets.sort((a, b) => a.launchTime - b.launchTime);
 
     // track time
     let simTime = 0;
-
     let previousTime = 0;
     for (const target of targets) {
         simTime = target.launchTime;
 
+        if (previousTime != simTime) {
+            await delay(simTime - previousTime);
+        }
         simTarget(target, simTime);
         previousTime = simTime;
 
-        if (delayTime > 0) {
-            await delay(delayTime);
-        }
         renderProgressBar('progressBar', targets.length, ++count);
     }
 
@@ -931,13 +927,36 @@ function simTarget(target, time) {
             direction: 'top',
             offset: [0, -20]
         });
+
+        // trajectory line
+        const launcherCoords = [launcher.lng, launcher.lat];
+        const targetCoords = [target.lng, target.lat];
+
+        const circleLine = turf.greatCircle(
+            turf.point(launcherCoords),
+            turf.point(targetCoords),
+            { npoints: 100 }
+        );
+        trajectory = L.geoJSON(circleLine, {
+        style: {
+            color: 'gray',
+            weight: 2,
+            dashArray: '5, 10'
+        }
+        })
+        // show on hover
+        blastCircle.on('mouseover', () => {
+            trajectory.addTo(map);
+        });
+        blastCircle.on('mouseout', () => {
+            map.removeLayer(trajectory);
+        });
     }
 
     for(let i = 0; i < interceptors.length; i++){
         interceptors[i].airdefense.numTrackedTargets = 0;
     }
         
-
 }
 
 //////////////////
