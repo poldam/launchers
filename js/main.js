@@ -624,19 +624,24 @@ function addTargetToMap(target){
 }
 
 // returns launchers in range of targets
-function getLaunchersInRange(launchers, targetLat, targetLng){
-     inRange = [];
-     launchers.forEach(function (launcher) {
-             var distance = map.distance([launcher.lat, launcher.lng], [targetLat, targetLng]);
-         
-             // Check if this launcher within range
-             if (distance <= launcher.range) {
-                 inRange.push(launcher);
-             }
-         });
-     return inRange;   
-}
+function getLaunchersInRange(launchers, targetLat, targetLng) {
+    let inRange = [];
 
+    launchers.forEach(function (launcher) {
+        const distance = map.distance([launcher.lat, launcher.lng], [targetLat, targetLng]);
+        
+        // Check if this launcher within range
+        if (distance <= launcher.range) {
+            launcher._distanceToTarget = distance;
+            inRange.push(launcher);
+        }
+    });
+
+    inRange.sort((a, b) => a._distanceToTarget - b._distanceToTarget);
+    inRange.forEach(l => delete l._distanceToTarget);
+
+    return inRange;
+}
 // delete targets that are out of range after moving a launcher
 function updateLauncherTargets(launcherid){
      var launcher = launchers.find(l => l.id === launcherid);
@@ -937,7 +942,7 @@ function simTarget(target, time) {
             turf.point(targetCoords),
             { npoints: 100 }
         );
-        trajectory = L.geoJSON(circleLine, {
+        const trajectory = L.geoJSON(circleLine, {
         style: {
             color: 'gray',
             weight: 2,
@@ -1158,14 +1163,20 @@ map.on('contextmenu', function (e) {
     clickedLat = e.latlng.lat;
     clickedLng = e.latlng.lng;
     launchersInRange = getLaunchersInRange(launchers, clickedLat, clickedLng);
+   
+    if(launchersInRange.length === 0){
+        alert('No launchers in range!');
+        return;
+    }
+
     const dropdown = $('#blastLauncher');
     dropdown.empty(); 
 
-    $('<option value=""> -- Select Launcher -- </option>').appendTo(dropdown);
-    launchersInRange.forEach(launcher => {
+    launchersInRange.forEach((launcher, index) => {
         $('<option></option>') 
             .val(launcher.id) 
-            .text(launcher.name) 
+            .text(launcher.name)
+            .prop('selected', index === 0)  
             .appendTo(dropdown)
     });
 

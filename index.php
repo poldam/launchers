@@ -465,7 +465,8 @@
                         <p><strong>Interception Process:</strong><br>
                         - When a launcher missile is fired, air defenses within the detection range will attempt to intercept the missile.<br>
                         - If within interception range, the air defense will calculate the interception point and display it visually on the map.<br>
-                        - Interceptions may occur before the missile reaches its target.
+                        - Interceptions may occur before the missile reaches its target.<br>
+                        - In case the missile is not intercepted, hover over the blast circle to see the rocket's trajectory.
                         </p>
 
                         <h5>Factors Affecting Interception Success:</h5>
