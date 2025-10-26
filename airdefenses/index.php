@@ -2,8 +2,8 @@
 session_name('MISSILESv01');
 session_start();
 
-if(!$_SESSION['loggedin'])
-    header("Location: ../");
+// if(!$_SESSION['loggedin'])
+//     header("Location: ../");
 
 require_once('../libraries/lib.php');
 $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -34,6 +34,7 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Image</th>
                     <th>Name</th>
                     <th>Model</th>
                     <th>Country</th>
@@ -52,8 +53,22 @@ $airdefenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </thead>
             <tbody>
                 <?php foreach ($airdefenses as $airdefense): ?>
+                    <?php
+                        $type = 'defense';
+                        $id = $airdefense['id'];
+                        $specific = "../images/{$type}-{$id}.jpg";
+                        $fallback = "../images/{$type}.jpg";
+                        $imageToShow = file_exists($specific) ? $specific : $fallback;
+                    ?>
                 <tr>
                     <td><?= $airdefense['id'] ?></td>
+                    <td>
+                        <img
+                            src="<?= htmlspecialchars($imageToShow) ?>"
+                            alt="<?= htmlspecialchars($airdefense['name']) ?>"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:4px;border:1px solid #ccc;"
+                        >
+                    </td>
                     <td><?= $airdefense['name'] ?></td>
                     <td><?= $airdefense['model'] ?></td>
                     <td><?= $airdefense['country'] ?></td>

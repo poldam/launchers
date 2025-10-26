@@ -2,8 +2,8 @@
 session_name('MISSILESv01');
 session_start();
 
-if(!$_SESSION['loggedin'])
-    header("Location: ../");
+// if(!$_SESSION['loggedin'])
+//     header("Location: ../");
 
 require_once('../libraries/lib.php');
 $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
@@ -34,6 +34,7 @@ $launchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Image</th>
                     <th>Name</th>
                     <th>Model</th>
                     <th>Rocket Name</th>
@@ -51,8 +52,22 @@ $launchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </thead>
             <tbody>
                 <?php foreach ($launchers as $launcher): ?>
+                    <?php
+                        $type = 'offense';
+                        $id = $launcher['id'];
+                        $imagePath = "../images/{$type}-{$id}.jpg";
+                        $fallbackPath = "../images/{$type}.jpg";
+
+                        // check if specific image exists
+                        $imageToShow = file_exists($imagePath) ? $imagePath : $fallbackPath;
+                    ?>
                 <tr>
                     <td><?= $launcher['id'] ?></td>
+                    <td>
+                        <img src="<?= htmlspecialchars($imageToShow) ?>"
+                            alt="Image of <?= htmlspecialchars($launcher['name']) ?>"
+                            style="width: 70px; height: 70px; object-fit: cover; border-radius: 5px; border: 1px solid #ccc;">
+                    </td>
                     <td><?= $launcher['name'] ?></td>
                     <td><?= $launcher['model'] ?></td>
                     <td><?= $launcher['rocket_name'] ?></td>

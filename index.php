@@ -613,12 +613,9 @@
                                 <p><strong>Range:</strong> ${formatNum(data.range)} m (${toKm(data.range)} km)</p>
                                 <p><strong>Speed:</strong> ${formatNum(data.speed)} m/s (${toMach(data.speed)} Mach)</p>
                                 <p><strong>Blast Radius:</strong> ${formatNum(data.blast_radius)} m (${toKm(data.blast_radius)} km)</p>
-                                <p><strong>Explosive Yield:</strong> ${formatNum(data.explosive_yield)} kg TNT</p>
-                                <p><strong>Overpressure:</strong> ${formatNum(data.overpressure)} kPa</p>
+                                
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Mass:</strong> ${formatNum(data.mass)} kg</p>
-                                <p><strong>Area:</strong> ${formatNum(data.area)} m²</p>
                                 <p><strong>Cost:</strong> ${data.cost ? '$' + parseFloat(data.cost).toLocaleString() : 'N/A'}</p>
                                 <p><strong>Country:</strong> ${data.country || 'N/A'}</p>
                             </div>
