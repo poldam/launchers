@@ -27,6 +27,8 @@
     <link rel="stylesheet" href="./css/leaflet.css" />
      
     <link href="https://fonts.googleapis.com/css2?family=PT+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+
  
     <link rel="stylesheet" href="./css/main.css" />  
 </head>
@@ -61,7 +63,7 @@
                                 <div class="col-md-12">
                                     <input type="hidden" id="launcherId" name="launcherId">
                                     <label for="template">Select Offense Template:</label>
-                                    <select id="template" name="template"  class="form-control">
+                                    <select id="template" name="template"  class="form-control selectpicker" data-live-search="true">
                                         <option value=""> -- Select Template -- </option>
                                         <?php
                                             $stmt = $pdo->prepare('SELECT * FROM launcher_templates ORDER BY country DESC, name DESC');
@@ -88,6 +90,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-info" id="viewLauncherInfo">View Info</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveLauncher">Save</button>
                     </div>
@@ -382,7 +385,7 @@
                             <input type="hidden" id="airDefenseId" name="airDefenseId">
                             
                             <label for="airDefenseTemplate">Select Air Defense Template:</label>
-                            <select id="airDefenseTemplate" name="airDefenseTemplate" class="form-control" required>
+                            <select id="airDefenseTemplate" name="airDefenseTemplate" class="form-control selectpicker" data-live-search="true" required>
                                 <option value=""> -- Select Air Defense System -- </option>
                                 <?php
                                     $stmt = $pdo->prepare('SELECT * FROM airdefense_templates ORDER BY country DESC, name DESC');
@@ -405,6 +408,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-info" id="viewAirDefenseInfo">View Info</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveAirDefense">Save Air Defense</button>
                     </div>
@@ -501,6 +505,31 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="platformInfoModal" tabindex="-1" aria-labelledby="platformInfoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="platformInfoModalLabel">Platform Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="platformInfoBody">
+                    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div id="platformShareLink" class="flex-grow-1 text-break">
+                        <input type="text" readonly class="form-control form-control-sm" id="shareLinkInput" style="font-size: 0.9rem;">
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
     <script src="./js/jquery-3.5.1.min.js"></script>
 
@@ -529,8 +558,158 @@
             $('#instructionsModal').modal('show');
         });
 
-    </script>                                 
+        $(document).ready(function () {
+            $('.selectpicker').selectpicker();
+        });
 
+        async function loadPlatformInfo(type, id) {
+            if (!id) {
+                alert("No template selected!");
+                return;
+            }
+
+            $('#platformInfoModal').modal('show');
+            $('#platformInfoBody').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+            $('#platformShareLink').text('');
+
+            try {
+                const response = await $.ajax({
+                    url: './scripts/get_platform_info.php',
+                    type: 'POST',
+                    data: { type: type, id: id },
+                    dataType: 'json'
+                });
+
+                const data = response;
+                if (!data || data.error) {
+                    $('#platformInfoBody').html('<div class="alert alert-danger">Platform information not found.</div>');
+                    return;
+                }
+
+                // determine which image to use
+                const imageUrl = await getPlatformImage(type, id, data.image_url);
+
+                let html = `
+                    <div class="container-fluid">
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <img src="${imageUrl}" class="img-fluid rounded shadow-sm border" style="max-height:300px; object-fit:contain;">
+                            </div>
+                            <div class="col-md-8">
+                                <h3><strong>${data.name}</strong></h3>
+                                <p class="mb-1"><strong>Model:</strong> ${data.model || 'N/A'}</p>
+                                <p class="mb-1"><strong>Country:</strong> ${data.country || 'N/A'}</p>
+                                <p class="text-muted">${data.description || ''}</p>
+                            </div>
+                        </div>
+                        <hr>
+                `;
+
+                if (type === 'offense') {
+                    html += `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Rocket:</strong> ${data.rocket_name || 'N/A'}</p>
+                                <p><strong>Range:</strong> ${formatNum(data.range)} m (${toKm(data.range)} km)</p>
+                                <p><strong>Speed:</strong> ${formatNum(data.speed)} m/s (${toMach(data.speed)} Mach)</p>
+                                <p><strong>Blast Radius:</strong> ${formatNum(data.blast_radius)} m (${toKm(data.blast_radius)} km)</p>
+                                <p><strong>Explosive Yield:</strong> ${formatNum(data.explosive_yield)} kg TNT</p>
+                                <p><strong>Overpressure:</strong> ${formatNum(data.overpressure)} kPa</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Mass:</strong> ${formatNum(data.mass)} kg</p>
+                                <p><strong>Area:</strong> ${formatNum(data.area)} m²</p>
+                                <p><strong>Cost:</strong> ${data.cost ? '$' + parseFloat(data.cost).toLocaleString() : 'N/A'}</p>
+                                <p><strong>Country:</strong> ${data.country || 'N/A'}</p>
+                            </div>
+                        </div>`;
+                } else if (type === 'defense') {
+                    html += `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Interception Range:</strong> ${formatNum(data.interception_range)} m (${toKm(data.interception_range)} km)</p>
+                                <p><strong>Detection Range:</strong> ${formatNum(data.detection_range)} m (${toKm(data.detection_range)} km)</p>
+                                <p><strong>Accuracy:</strong> ${(parseFloat(data.accuracy || 0) * 100).toFixed(1)}%</p>
+                                <p><strong>Reaction Time:</strong> ${formatNum(data.reaction_time)} s</p>
+                                <p><strong>Interception Speed:</strong> ${formatNum(data.interception_speed)} m/s (${toMach(data.interception_speed)} Mach)</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Number of Rockets:</strong> ${data.num_rockets || 'N/A'}</p>
+                                <p><strong>Reload Time:</strong> ${formatNum(data.reload_time)} min</p>
+                                <p><strong>Max Simultaneous Targets:</strong> ${data.max_simultaneous_targets || 'N/A'}</p>
+                                <p><strong>Hypersonic Capable:</strong> ${parseInt(data.isHypersonicCapable) ? 'Yes' : 'No'}</p>
+                                <p><strong>Cost:</strong> ${data.cost ? '$' + parseFloat(data.cost).toLocaleString() : 'N/A'}</p>
+                            </div>
+                        </div>`;
+                }
+
+
+                html += `</div>`;
+                $('#platformInfoBody').html(html);
+
+                // shareable URL
+                const shareUrl = `${window.location.origin}${window.location.pathname}?platform=${type}&id=${id}`;
+                $('#platformShareLink').html(`<i class="fa fa-link"></i> <a href="${shareUrl}" target="_blank">${shareUrl}</a>`);
+
+            } catch (err) {
+                $('#platformInfoBody').html('<div class="alert alert-danger">Error loading platform information.</div>');
+            }
+        }
+
+        function toKm(value) {
+            const num = parseFloat(value);
+            if (isNaN(num) || num <= 0) return 'N/A';
+            return (num / 1000).toFixed(2);
+        }
+
+        function toMach(value) {
+            const num = parseFloat(value);
+            if (isNaN(num) || num <= 0) return 'N/A';
+            const mach = num / 343; // 1 Mach = 343 m/s (approx. sea level)
+            return mach.toFixed(2);
+        }
+
+
+        // helper for numeric formatting
+        function formatNum(v) {
+            if (v === null || v === undefined || v === '') return 'N/A';
+            const num = parseFloat(v);
+            return isNaN(num) ? v : num.toLocaleString();
+        }
+
+        // Helper to check image existence and fallback
+        async function getPlatformImage(type, id, dbImageUrl) {
+            const specificPath = `./images/${type}-${id}.jpg`;
+            const fallbackPath = `./images/${type}.jpg`;
+
+            if (dbImageUrl) return dbImageUrl;
+
+            const exists = await imageExists(specificPath);
+            return exists ? specificPath : fallbackPath;
+        }
+
+        // Check if image actually exists
+        function imageExists(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url + '?v=' + Date.now(); // prevent cache
+            });
+        }
+
+        // attach event handlers for the buttons
+        $('#viewLauncherInfo').on('click', function () {
+            const templateId = $('#template').val();
+            loadPlatformInfo('offense', templateId);
+        });
+
+        $('#viewAirDefenseInfo').on('click', function () {
+            const templateId = $('#airDefenseTemplate').val();
+            loadPlatformInfo('defense', templateId);
+        });
+
+    </script>                                 
 
     <script src="./js/bootstrap.bundle.min.js"></script>
     <script src="./js/leaflet.js"></script>
@@ -538,11 +717,46 @@
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
     
     <script src="./js/main.js"></script>
     <script src="./js/layerControls.js"></script>
     
     <script>
+
+        $(document).ready(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const platform = urlParams.get('platform');
+            const id = urlParams.get('id');
+
+            const openInfo = platform && id;
+            const type =
+                platform && (platform.toLowerCase() === 'offense' || platform.toLowerCase() === 'launcher')
+                    ? 'offense'
+                    : platform && platform.toLowerCase() === 'defense'
+                    ? 'defense'
+                    : null;
+
+            if (openInfo && type && !isNaN(parseInt(id))) {
+                // Wait for map + modals
+                setTimeout(() => {
+                    loadPlatformInfo(type, parseInt(id));
+
+                    // When the info modal closes, open instructions if needed
+                    $('#platformInfoModal').one('hidden.bs.modal', function () {
+                        // if (shouldShowInstructions) {
+                            $('#instructionsModal').modal('show');
+                        // }
+                    });
+                }, 600);
+            } else {
+                // no deep link: show instructions normally if needed
+                // if (shouldShowInstructions) {
+                    $('#instructionsModal').modal('show');
+                // }
+            }
+        });
+
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
             m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

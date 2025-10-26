@@ -241,3 +241,11 @@ body {
 .google-btn:hover {
     background-color: #4a4e54;
 }
+
+#platformShareLink {
+    user-select: text !important;
+    cursor: text;
+    white-space: normal;
+    word-break: break-all;
+}
+

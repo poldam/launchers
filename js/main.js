@@ -25,13 +25,14 @@ $(document).ready(function() {
     });
     //$('#delayRange').val(delayTime);
 
-    // add buttons to map
-    if(google_id == null){ // Show button if not logged in
+    let shouldShowInstructions = false;
+
+    if (google_id == null) { 
         L.control.LoginControl({ position: 'bottomright' }).addTo(map);
-        $('#instructionsModal').modal('show'); // show the info modal
+        shouldShowInstructions = true;  // delay showing it until we’re sure
+    } else {
+        L.control.LogoutControl({ position: 'bottomright' }).addTo(map);
     }
-    else
-        L.control.LogoutControl({ position: 'bottomright' }).addTo(map); 
 
     // Load launchers 
     loadLaunchers(); 
